@@ -8,7 +8,7 @@ DrawingCam::DrawingCam(int id)
     cam_id = id;
     brushSize = 5;
 
-    currentPointerPos = lastPointerPos = cv::Point(0, 0);
+    currentPointerPos = cv::Point(0, 0);
 
     eraserColor = cv::Scalar(0, 0, 0);
     brushColor = cv::Scalar(250, 10, 10);
@@ -58,7 +58,9 @@ void DrawingCam::start()
         frameClone |= canvas;
 
         cv::imshow(WINDOW_NAME, frameClone);
-        cv::imshow("Canvas", canvas);
+        //cv::imshow("Canvas", canvas);
+        cv::imshow("Foreground", foreground);
+        cv::imshow("skinMask", skinMask);
 
         if (user_input == '+' && brushSize < 25)
         {
@@ -81,7 +83,6 @@ void DrawingCam::draw()
 {
     if (fingerPoints.size() == 1)
     {
-        lastPointerPos = currentPointerPos;
         currentPointerPos = fingerPoints.at(0);
 
         //cv::line(canvas, lastPointerPos, currentPointerPos, brushColor, brushSize);

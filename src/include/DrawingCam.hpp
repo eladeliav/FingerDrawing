@@ -23,7 +23,7 @@ private:
 
     cv::Mat frame, frameClone, canvas, foreground, skinMask;
 
-    cv::Point currentPointerPos, lastPointerPos;
+    cv::Point currentPointerPos;
     cv::Scalar brushColor, eraserColor;
     int brushSize;
 
