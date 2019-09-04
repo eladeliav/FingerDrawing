@@ -69,7 +69,7 @@ void SkinDetector::calcThresholds(Mat sample1, Mat sample2)
     sLow = min(hsvMeansSample1[1], hsvMeansSample2[1]) - OFFSET_LOW_THRESH;
     sHigh = max(hsvMeansSample1[1], hsvMeansSample2[1]) + OFFSET_HIGH_THRESH;
 
-    // the V channel shouldn't be used. By ignorint it, shadows on the hand wouldn't interfire with segmentation.
+    // the V channel shouldn't be used. By ignoring it, shadows on the hand wouldn't interfere with segmentation.
     // Unfortunately there's a bug somewhere and not using the V channel causes some problem. This shouldn't be too hard to fix.
     vLow = min(hsvMeansSample1[2], hsvMeansSample2[2]) - OFFSET_LOW_THRESH;
     vHigh = max(hsvMeansSample1[2], hsvMeansSample2[2]) + OFFSET_HIGH_THRESH;
