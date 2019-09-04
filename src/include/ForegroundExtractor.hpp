@@ -5,28 +5,25 @@
 #ifndef FINGERDRAWING_FOREGROUNDEXTRACTOR_HPP
 #define FINGERDRAWING_FOREGROUNDEXTRACTOR_HPP
 
-#include <opencv2/opencv.hpp>
+#include <opencv2/core.hpp>
+#include <opencv2/video.hpp>
 
-#define THRESHHOLD 10
+using namespace cv;
+
+#define THRESHHOLD 50
 
 class ForegroundExtractor
 {
 public:
     ForegroundExtractor();
 
-    void calibrate(cv::Mat frame);
+    void calibrate(Mat frame);
 
-    cv::Mat extractForeground(cv::Mat frame);
+    Mat extractForeground(Mat frame);
 
 private:
-    cv::Mat background;
+    Ptr<BackgroundSubtractorMOG2> background;
     bool calibrated = false;
-
-private:
-
-    cv::Mat extractForegroundMask(cv::Mat frame);
-
-    void removeBackground(cv::Mat frame);
 };
 
 
