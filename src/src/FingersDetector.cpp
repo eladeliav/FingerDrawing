@@ -8,7 +8,7 @@
 
 vector<Point> FingersDetector::countFingers(const Mat &frame)
 {
-    if(frame.empty())
+    if (frame.empty())
         return vector<Point>();
 
     Mat debugImage(frame.rows, frame.cols, CV_8UC3, Scalar(0, 0, 0));
@@ -33,7 +33,7 @@ vector<Point> FingersDetector::countFingers(const Mat &frame)
     Point handCenter(
             (boundingRectangle.tl().x + boundingRectangle.br().x) / 2,
             (boundingRectangle.tl().y + boundingRectangle.br().y) / 2
-            );
+    );
     rectangle(debugImage, boundingRectangle, Scalar(255, 0, 0));
     circle(debugImage, handCenter, 10, Scalar(255, 255, 0));
 
@@ -47,15 +47,17 @@ vector<Point> FingersDetector::countFingers(const Mat &frame)
 
     int fingerNum = 0;
     vector<Point> fingerPoints;
-    for (auto & defect : defects)
+    for (auto &defect : defects)
     {
-        if(fingerNum == 4)
+        if (fingerNum == 4)
             break;
         Point start = maxContour[defect.val[0]];
         Point end = maxContour[defect.val[1]];
         Point far = maxContour[defect.val[2]];
 
-        if(pointsDistance(start, end) <= 10 || pointsDistance(end, far) <=  10 || pointsDistance(start, far) <=  10)
+        if (pointsDistance(start, end) <= CLOSE_POINTS_THRESHOLD ||
+            pointsDistance(end, far) <= CLOSE_POINTS_THRESHOLD ||
+            pointsDistance(start, far) <= CLOSE_POINTS_THRESHOLD)
             continue;
 
         int a = sqrt(std::pow((end.x - start.x), 2) + std::pow(end.y - start.y, 2));
@@ -63,46 +65,33 @@ vector<Point> FingersDetector::countFingers(const Mat &frame)
         int c = sqrt(std::pow((end.x - far.x), 2) + std::pow(end.y - far.y, 2));
         float angle = acos((std::pow(b, 2) + std::pow(c, 2) - std::pow(a, 2)) / (2 * b * c));
 
-        if(angle <= M_PI / 2 && far.y < handCenter.y)
+        if (angle <= M_PI / 2 && far.y < handCenter.y)
         {
             fingerNum++;
-            circle(debugImage, start, 8, Scalar(0, 0, 255));
-            circle(debugImage, end, 8, Scalar(0, 255, 0));
-            circle(debugImage, far, 8, Scalar(255, 0, 0));
+//            circle(debugImage, start, 8, Scalar(0, 0, 255));
+//            circle(debugImage, end, 8, Scalar(0, 255, 0));
+//            circle(debugImage, far, 8, Scalar(255, 0, 0));
+            if(!closePointExists(fingerPoints, start))
+                fingerPoints.push_back(start);
+            if(!closePointExists(fingerPoints, end))
+                fingerPoints.push_back(end);
         }
-    }
-
-    if(fingerNum == 0)
-    {
-        for (auto & defect : defects)
+        else if (angle <= M_PI && far.y < handCenter.y && fingerNum == 0)
         {
-            if(fingerNum == 4)
-                break;
-            Point start = maxContour[defect.val[0]];
-            Point end = maxContour[defect.val[1]];
-            Point far = maxContour[defect.val[2]];
-
-            if(pointsDistance(start, end) <= 10 || pointsDistance(end, far) <=  10 || pointsDistance(start, far) <=  10)
-                continue;
-
-            int a = sqrt(std::pow((end.x - start.x), 2) + std::pow(end.y - start.y, 2));
-            int b = sqrt(std::pow((far.x - start.x), 2) + std::pow(far.y - start.y, 2));
-            int c = sqrt(std::pow((end.x - far.x), 2) + std::pow(end.y - far.y, 2));
-            float angle = acos((std::pow(b, 2) + std::pow(c, 2) - std::pow(a, 2)) / (2 * b * c));
-
-            if(far.y < handCenter.y && angle < M_PI)
-            {
-                fingerNum++;
-                circle(debugImage, start, 8, Scalar(0, 0, 255));
-                circle(debugImage, end, 8, Scalar(0, 255, 0));
-                circle(debugImage, far, 8, Scalar(255, 0, 0));
-            }
+            std::cout << "1 finger up" << std::endl;
+            if(!closePointExists(fingerPoints, start))
+                fingerPoints.push_back(start);
         }
     }
 
-    std::cout << fingerNum + 1 << ", hand size: " << contourArea(maxContour) << std::endl;
+    for(auto const& p : fingerPoints)
+    {
+        circle(debugImage, p, 8, Scalar(255, 0, 0));
+    }
+
+    std::cout << fingerPoints.size() << ", hand size: " << contourArea(maxContour) << std::endl;
     imshow("debug", debugImage);
-    return vector<Point>();
+    return fingerPoints;
 }
 
 vector<vector<Point>> FingersDetector::getContours(const Mat &mask, vector<Vec4i> &hierarchy, int &maxIndex)
@@ -133,13 +122,13 @@ vector<vector<Point>> FingersDetector::getContours(const Mat &mask, vector<Vec4i
     return contours;
 }
 
-double FingersDetector::pointsDistance(const Point& a, const Point& b)
+double FingersDetector::pointsDistance(const Point &a, const Point &b)
 {
     Point difference = a - b;
     return sqrt(difference.ddot(difference));
 }
 
-Mat FingersDetector::threshImage(const Mat& frame)
+Mat FingersDetector::threshImage(const Mat &frame)
 {
     Mat gray, blur, thresh;
     cvtColor(frame, gray, COLOR_BGR2GRAY);
@@ -148,4 +137,12 @@ Mat FingersDetector::threshImage(const Mat& frame)
 
     imshow("thresh", thresh);
     return thresh;
+}
+
+bool FingersDetector::closePointExists(const vector<Point> &points, const Point &point)
+{
+    for (auto const &p : points)
+        if (pointsDistance(p, point) <= CLOSE_POINTS_THRESHOLD)
+            return true;
+    return false;
 }

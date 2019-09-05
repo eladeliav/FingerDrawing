@@ -75,7 +75,7 @@ void DrawingCam::start()
 
         foreground = foregroundExtractor.extractForeground(frame);
         FacesRemover::removeFaces(frame, foreground);
-        FingersDetector::countFingers(foreground);
+        fingerPoints = FingersDetector::countFingers(foreground);
 
         draw();
         overlayImage(&frameClone, &canvas, Point(0, 0));

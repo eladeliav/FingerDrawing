@@ -11,6 +11,8 @@
 using std::vector;
 using namespace cv;
 
+#define CLOSE_POINTS_THRESHOLD 15
+
 class FingersDetector
 {
 public:
@@ -19,6 +21,7 @@ private:
     static vector<vector<Point>> getContours(const Mat& mask, vector<Vec4i> &hierarchy, int &maxIndex);
     static double pointsDistance(const Point& a, const Point& b);
     static Mat threshImage(const Mat& frame);
+    static bool closePointExists(const vector<Point>& points, const Point& point);
 };
 
 
