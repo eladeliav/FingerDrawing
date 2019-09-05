@@ -15,7 +15,7 @@ using namespace cv;
 #ifdef _WIN32
 #define FACE_CLASSIFIER_FILE_PATH "../Resources/haarcascade_frontalface_alt.xml"
 #else
-#define FACE_CLASSIFIER_FILE_PATH "../Resources/haarcascade_frontalface_alt.xml"
+#define FACE_CLASSIFIER_FILE_PATH "Resources/haarcascade_frontalface_alt.xml"
 #endif
 
 namespace FacesRemover

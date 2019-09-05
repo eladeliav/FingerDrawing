@@ -25,6 +25,7 @@ vector<Point> FingersDetector::countFingers(const Mat &frame)
 
     convexHull(maxContour, hull_points, true);
     convexHull(maxContour, hull_ints, false);
+    drawContours(debugImage, vector<vector<Point>>(1, hull_points), 0, Scalar(0, 0, 255));
 
     vector<Vec4i> defects;
     if (hull_ints.size() <= 3)
