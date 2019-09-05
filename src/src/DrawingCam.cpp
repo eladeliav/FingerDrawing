@@ -72,12 +72,9 @@ void DrawingCam::start()
 
         frameClone = frame.clone();
 
-        if (!skinDetector.alreadySampled())
-            skinDetector.drawSampler(frameClone);
+
         foreground = foregroundExtractor.extractForeground(frame);
-
         FacesRemover::removeFaces(frame, foreground);
-
         FingersDetector::countFingers(foreground);
 
         draw();
@@ -94,8 +91,6 @@ void DrawingCam::start()
             brushSize--;
         } else if (user_input == 'b')
             foregroundExtractor.calibrate(frame);
-        else if (user_input == 's')
-            skinDetector.sample(frame);
         else if(user_input == 'r')
             canvas = eraserColor;
     }
