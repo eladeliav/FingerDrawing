@@ -3,6 +3,11 @@
 //
 #include "../include/DrawingCam.hpp"
 
+template <typename T> T CLAMP(const T& value, const T& low=0, const T& high=255)
+{
+    return value < low ? low : (value > high ? high : value);
+}
+
 void overlayImage(Mat* src, Mat* overlay, const Point& location)
 {
     for (int y = max(location.y, 0); y < src->rows; ++y)
@@ -43,24 +48,16 @@ DrawingCam::DrawingCam(int id)
 
     cam = cv::VideoCapture(cam_id);
 
-    foregroundExtractor = ForegroundExtractor();
-    skinDetector = SkinDetector();
-
     if (!cam.isOpened())
         throw std::runtime_error("Failed to open camera");
 
     cam >> frame;
-    frameClone = frame.clone();
 
     if (frame.empty())
         throw std::runtime_error("Received empty frame");
 
     canvas = cv::Mat(frame.size(), CV_8UC3);
-
     canvas = eraserColor;
-
-    foregroundExtractor.calibrate(frame);
-
 }
 
 void DrawingCam::start()
@@ -68,20 +65,22 @@ void DrawingCam::start()
     for (char user_input = cv::waitKey(10); user_input != 27; user_input = cv::waitKey(10))
     {
         cam >> frame;
+        Mat closing;
+        cvtColor(frame, hsv, COLOR_BGR2HSV);
+        inRange(hsv, lower, upper, gloveMask);
 
+        Mat element = getStructuringElement(MARKER_CROSS, Size(10, 10));
+        morphologyEx(gloveMask, gloveMask, MORPH_CLOSE, element);
 
-        frameClone = frame.clone();
-
-
-        foreground = foregroundExtractor.extractForeground(frame);
-        FacesRemover::removeFaces(frame, foreground);
-        fingerPoints = FingersDetector::countFingers(foreground);
+        fingerPoints = FingersDetector::countFingers(gloveMask);
 
         draw();
-        overlayImage(&frameClone, &canvas, Point(0, 0));
+        overlayImage(&frame, &canvas, Point(0, 0));
 
-        cv::imshow(WINDOW_NAME, frameClone);
-        cv::imshow("Foreground", foreground);
+        cv::imshow(WINDOW_NAME, frame);
+        imshow("mask", gloveMask);
+        FrameAndValues data(&hsv, &lower, &upper);
+        setMouseCallback(WINDOW_NAME, mouseCallBack, &data);
 
         if (user_input == '+' && brushSize < 25)
         {
@@ -89,8 +88,7 @@ void DrawingCam::start()
         } else if (user_input == '-' && brushSize > 1)
         {
             brushSize--;
-        } else if (user_input == 'b')
-            foregroundExtractor.calibrate(frame);
+        }
         else if(user_input == 'r')
             canvas = eraserColor;
     }
@@ -103,8 +101,23 @@ void DrawingCam::draw()
     if (fingerPoints.size() == 1)
     {
         currentPointerPos = fingerPoints.at(0);
-
-        //cv::line(canvas, lastPointerPos, currentPointerPos, brushColor, brushSize);
         cv::circle(canvas, currentPointerPos, brushSize, brushColor, brushSize);
+    }
+}
+
+void mouseCallBack(int event, int x, int y, int flags, void *frameAndValues)
+{
+    if(event == EVENT_LBUTTONDOWN)
+    {
+        auto* data = (FrameAndValues*)frameAndValues;
+        Vec3b px = (*data->frame).at<Vec3b>(y, x);
+        int lh = CLAMP(px.val[0] - OFFSET);
+        int ls = CLAMP(px.val[1] - OFFSET);
+        int lv = CLAMP(px.val[2] - OFFSET);
+        int uh = CLAMP(px.val[0] + OFFSET);
+        int us = CLAMP(px.val[1] + OFFSET);
+        int uv = CLAMP(px.val[2] + OFFSET);
+        *data->lower = Scalar(lh, ls, lv);
+        *data->upper = Scalar(uh, us, uv);
     }
 }

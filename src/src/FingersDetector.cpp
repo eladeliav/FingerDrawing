@@ -65,8 +65,11 @@ vector<Point> FingersDetector::countFingers(const Mat &frame)
         int c = sqrt(std::pow((end.x - far.x), 2) + std::pow(end.y - far.y, 2));
         float angle = acos((std::pow(b, 2) + std::pow(c, 2) - std::pow(a, 2)) / (2 * b * c));
 
-        if (angle <= M_PI / 2 && far.y < handCenter.y)
+        if (angle <= M_PI / 2 && far.y + CLOSE_POINTS_THRESHOLD < handCenter.y)
         {
+            std::cout << "far point: " << far<< std::endl;
+            std::cout << "far y: " << far.y << " center y: " << handCenter.y << std::endl;
+
             fingerNum++;
 //            circle(debugImage, start, 8, Scalar(0, 0, 255));
 //            circle(debugImage, end, 8, Scalar(0, 255, 0));
@@ -76,7 +79,7 @@ vector<Point> FingersDetector::countFingers(const Mat &frame)
             if(!closePointExists(fingerPoints, end))
                 fingerPoints.push_back(end);
         }
-        else if (angle <= M_PI && far.y < handCenter.y && fingerNum == 0)
+        else if (angle <= M_PI && far.y + CLOSE_POINTS_THRESHOLD < handCenter.y && fingerPoints.empty())
         {
             std::cout << "1 finger up" << std::endl;
             if(!closePointExists(fingerPoints, start))
@@ -89,14 +92,14 @@ vector<Point> FingersDetector::countFingers(const Mat &frame)
         circle(debugImage, p, 8, Scalar(255, 0, 0));
     }
 
-    std::cout << fingerPoints.size() << ", hand size: " << contourArea(maxContour) << std::endl;
+    std::cout << fingerPoints.size() << std::endl;
     imshow("debug", debugImage);
     return fingerPoints;
 }
 
 vector<vector<Point>> FingersDetector::getContours(const Mat &mask, vector<Vec4i> &hierarchy, int &maxIndex)
 {
-    Mat thresh = threshImage(mask);
+    Mat thresh = mask;//threshImage(mask);
     if (thresh.empty() || thresh.channels() != 1)
     {
         maxIndex = -1;
