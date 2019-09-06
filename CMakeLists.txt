@@ -18,8 +18,7 @@ set(SOURCES
         src/include/ForegroundExtractor.hpp
         src/src/SkinDetector.cpp src/include/SkinDetector.hpp
         src/src/FacesRemover.cpp src/include/FacesRemover.hpp
-        src/src/FingerCounter.cpp
-        src/include/FingerCounter.hpp)
+        src/src/FingersDetector.cpp src/include/FingersDetector.hpp)
 
 include_directories(${OpenCV_INCLUDE_DIRS})
 

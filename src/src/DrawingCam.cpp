@@ -45,7 +45,6 @@ DrawingCam::DrawingCam(int id)
 
     foregroundExtractor = ForegroundExtractor();
     skinDetector = SkinDetector();
-    fingerCounter = FingerCounter();
 
     if (!cam.isOpened())
         throw std::runtime_error("Failed to open camera");
@@ -73,23 +72,16 @@ void DrawingCam::start()
 
         frameClone = frame.clone();
 
-        if (!skinDetector.alreadySampled())
-            skinDetector.drawSampler(frameClone);
+
         foreground = foregroundExtractor.extractForeground(frame);
-
         FacesRemover::removeFaces(frame, foreground);
-
-        skinMask = skinDetector.genMask(foreground);
-        fingerPoints = fingerCounter.findFingers(skinMask, frameClone);
+        fingerPoints = FingersDetector::countFingers(foreground);
 
         draw();
-        //frameClone |= canvas;
         overlayImage(&frameClone, &canvas, Point(0, 0));
 
         cv::imshow(WINDOW_NAME, frameClone);
-        //cv::imshow("Canvas", canvas);
         cv::imshow("Foreground", foreground);
-        cv::imshow("skinMask", skinMask);
 
         if (user_input == '+' && brushSize < 25)
         {
@@ -99,8 +91,6 @@ void DrawingCam::start()
             brushSize--;
         } else if (user_input == 'b')
             foregroundExtractor.calibrate(frame);
-        else if (user_input == 's')
-            skinDetector.sample(frame);
         else if(user_input == 'r')
             canvas = eraserColor;
     }

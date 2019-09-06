@@ -10,7 +10,7 @@
 #include "ForegroundExtractor.hpp"
 #include "SkinDetector.hpp"
 #include "FacesRemover.hpp"
-#include "FingerCounter.hpp"
+#include "FingersDetector.hpp"
 
 #define WINDOW_NAME "Frame"
 
@@ -29,7 +29,6 @@ private:
 
     ForegroundExtractor foregroundExtractor;
     SkinDetector skinDetector;
-    FingerCounter fingerCounter;
 
     vector<cv::Point> fingerPoints;
 
