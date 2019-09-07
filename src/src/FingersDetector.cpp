@@ -39,11 +39,10 @@ vector<Point> FingersDetector::countFingers(const Mat &frame, vector<Mat*> outpu
     if (defects.empty())
         return vector<Point>();
 
-    int fingerNum = 0;
     vector<Point> fingerPoints;
     for (auto &defect : defects)
     {
-        if (fingerNum == 4)
+        if (fingerPoints.size() == 5)
             break;
         Point start = maxContour[defect.val[0]];
         Point end = maxContour[defect.val[1]];
@@ -64,7 +63,6 @@ vector<Point> FingersDetector::countFingers(const Mat &frame, vector<Mat*> outpu
             std::cout << "far point: " << far << std::endl;
             std::cout << "far y: " << far.y << " center y: " << handCenter.y << std::endl;
 
-            fingerNum++;
             if (!Helpers::closePointExists(fingerPoints, start, CLOSE_POINTS_THRESHOLD))
                 fingerPoints.push_back(start);
             if (!Helpers::closePointExists(fingerPoints, end, CLOSE_POINTS_THRESHOLD))
