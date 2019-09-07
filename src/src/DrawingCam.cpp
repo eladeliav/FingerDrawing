@@ -3,12 +3,13 @@
 //
 #include "../include/DrawingCam.hpp"
 
-template <typename T> T CLAMP(const T& value, const T& low=0, const T& high=255)
+template<typename T>
+T CLAMP(const T &value, const T &low = 0, const T &high = 255)
 {
     return value < low ? low : (value > high ? high : value);
 }
 
-void overlayImage(Mat* src, Mat* overlay, const Point& location)
+void overlayImage(Mat *src, Mat *overlay, const Point &location = Point(0, 0))
 {
     for (int y = max(location.y, 0); y < src->rows; ++y)
     {
@@ -24,7 +25,7 @@ void overlayImage(Mat* src, Mat* overlay, const Point& location)
             if (fX >= overlay->cols)
                 break;
 
-            double opacity = ((double)overlay->data[fY * overlay->step + fX * overlay->channels() + 3]) / 255;
+            double opacity = ((double) overlay->data[fY * overlay->step + fX * overlay->channels() + 3]) / 255;
 
             for (int c = 0; opacity > 0 && c < src->channels(); ++c)
             {
@@ -65,33 +66,39 @@ void DrawingCam::start()
     for (char user_input = cv::waitKey(10); user_input != 27; user_input = cv::waitKey(10))
     {
         cam >> frame;
-        Mat closing;
+        Mat closing, debug = cv::Mat(frame.size(), CV_8UC3), displayCanvas;
         cvtColor(frame, hsv, COLOR_BGR2HSV);
         inRange(hsv, lower, upper, gloveMask);
 
         Mat element = getStructuringElement(MARKER_CROSS, Size(15, 15));
         morphologyEx(gloveMask, gloveMask, MORPH_CLOSE, element);
 
-        fingerPoints = FingersDetector::countFingers(gloveMask, vector<Mat*>{&frame});
+
+        displayCanvas = canvas.clone();
+        fingerPoints = FingersDetector::countFingers(gloveMask, vector<Mat *>{&displayCanvas, &frame});
 
         draw();
-        overlayImage(&frame, &canvas, Point(0, 0));
+        overlayImage(&frame, &canvas);
+
+        std::string sizeAndColor = "Size: " + std::to_string(brushSize);
+        putText(displayCanvas, sizeAndColor, Point(0, 50), FONT_HERSHEY_SIMPLEX, 2, Scalar(0, 0, 255, 255));
 
         cv::imshow(WINDOW_NAME, frame);
         imshow("mask", gloveMask);
-        imshow("canvas", canvas);
+        imshow("canvas", displayCanvas);
         FrameAndValues data(&hsv, &lower, &upper);
         setMouseCallback(WINDOW_NAME, mouseCallBack, &data);
 
-        if (user_input == '+' && brushSize < 25)
-        {
-            brushSize++;
-        } else if (user_input == '-' && brushSize > 1)
-        {
-            brushSize--;
-        }
-        else if(user_input == 'r')
+        if (user_input == '=' && brushSize < 25)
+            brushSize += 5;
+        else if (user_input == '-' && brushSize > 1)
+            brushSize -= 5;
+        else if (user_input == 'r')
             canvas = eraserColor;
+        else if (user_input == 'e')
+            brushColor = eraserColor;
+        else if(user_input == 'b')
+            brushColor = cv::Scalar(250, 10, 10);
     }
     cv::destroyAllWindows();
     cam.release();
@@ -102,16 +109,16 @@ void DrawingCam::draw()
     if (fingerPoints.size() == 1)
     {
         currentPointerPos = fingerPoints.at(0);
-        if(!Helpers::closePointExists(frame, currentPointerPos, 5))
+        if (!Helpers::closePointExists(frame, currentPointerPos, 5))
             cv::circle(canvas, currentPointerPos, brushSize, brushColor, brushSize);
     }
 }
 
 void mouseCallBack(int event, int x, int y, int flags, void *frameAndValues)
 {
-    if(event == EVENT_LBUTTONDOWN)
+    if (event == EVENT_LBUTTONDOWN)
     {
-        auto* data = (FrameAndValues*)frameAndValues;
+        auto *data = (FrameAndValues *) frameAndValues;
         Vec3b px = (*data->frame).at<Vec3b>(y, x);
         int lh = CLAMP(px.val[0] - OFFSET);
         int ls = CLAMP(px.val[1] - OFFSET);
