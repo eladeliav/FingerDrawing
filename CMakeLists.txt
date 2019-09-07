@@ -18,7 +18,7 @@ set(SOURCES
         src/include/FingersDetector.hpp
         src/src/GloveDetector.cpp
         src/include/GloveDetector.hpp
-        )
+        src/include/Helpers.cpp src/include/Helpers.hpp)
 
 include_directories(${OpenCV_INCLUDE_DIRS})
 

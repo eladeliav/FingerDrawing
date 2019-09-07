@@ -8,9 +8,12 @@
 #include <iostream>
 #include <opencv2/opencv.hpp>
 #include "FingersDetector.hpp"
+#include <vector>
 
 #define WINDOW_NAME "Frame"
 #define OFFSET 60
+
+using std::vector;
 
 void mouseCallBack(int event, int x, int y, int flags, void *userdata);
 

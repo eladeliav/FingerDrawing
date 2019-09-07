@@ -69,16 +69,17 @@ void DrawingCam::start()
         cvtColor(frame, hsv, COLOR_BGR2HSV);
         inRange(hsv, lower, upper, gloveMask);
 
-        Mat element = getStructuringElement(MARKER_CROSS, Size(10, 10));
+        Mat element = getStructuringElement(MARKER_CROSS, Size(15, 15));
         morphologyEx(gloveMask, gloveMask, MORPH_CLOSE, element);
 
-        fingerPoints = FingersDetector::countFingers(gloveMask);
+        fingerPoints = FingersDetector::countFingers(gloveMask, vector<Mat*>{&frame});
 
         draw();
         overlayImage(&frame, &canvas, Point(0, 0));
 
         cv::imshow(WINDOW_NAME, frame);
         imshow("mask", gloveMask);
+        imshow("canvas", canvas);
         FrameAndValues data(&hsv, &lower, &upper);
         setMouseCallback(WINDOW_NAME, mouseCallBack, &data);
 
@@ -101,7 +102,8 @@ void DrawingCam::draw()
     if (fingerPoints.size() == 1)
     {
         currentPointerPos = fingerPoints.at(0);
-        cv::circle(canvas, currentPointerPos, brushSize, brushColor, brushSize);
+        if(!Helpers::closePointExists(frame, currentPointerPos, 5))
+            cv::circle(canvas, currentPointerPos, brushSize, brushColor, brushSize);
     }
 }
 
