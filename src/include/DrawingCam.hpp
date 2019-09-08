@@ -8,6 +8,8 @@
 #include <iostream>
 #include <opencv2/opencv.hpp>
 #include "FingersDetector.hpp"
+#include "ForegroundExtractor.hpp"
+#include "FacesRemover.hpp"
 #include <vector>
 
 #define WINDOW_NAME "Frame"
@@ -33,13 +35,15 @@ private:
     int cam_id;
     cv::VideoCapture cam;
 
-    cv::Mat frame, canvas, gloveMask, hsv;
+    cv::Mat frame, canvas, foreground, hsv;
 
     cv::Point currentPointerPos;
     cv::Scalar brushColor, eraserColor;
     int brushSize;
 
     vector<cv::Point> fingerPoints;
+
+    ForegroundExtractor foregroundExtractor;
 
     void draw();
 

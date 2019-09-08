@@ -33,3 +33,13 @@ bool Helpers::closePointExists(const Mat &frame, const Point& point, int thresh)
     }
     return false;
 }
+
+bool Helpers::pointTooFarFromOthers(const vector<Point>& points, const Point& point, int thresh)
+{
+    for(auto const& p : points)
+    {
+        if(pointsDistance(p, point) > thresh)
+            return true;
+    }
+    return false;
+}
