@@ -27,8 +27,8 @@ vector<Point> FingersDetector::countFingers(const Mat &frame, vector<Mat *> outp
     convexHull(maxContour, hull_ints, false);
     Rect boundingRectangle = boundingRect(hull_points);
     Point handCenter(
-        (boundingRectangle.tl().x + boundingRectangle.br().x) / 2,
-        (boundingRectangle.tl().y + boundingRectangle.br().y) / 2);
+            (boundingRectangle.tl().x + boundingRectangle.br().x) / 2,
+            (boundingRectangle.tl().y + boundingRectangle.br().y) / 2);
 
     vector<Vec4i> defects;
     if (hull_ints.size() <= 3)
@@ -38,6 +38,7 @@ vector<Point> FingersDetector::countFingers(const Mat &frame, vector<Mat *> outp
     if (defects.empty())
         return vector<Point>();
     vector<Point> fingerPoints;
+    vector<vector<Point>> allFingerPoints;
     for (auto &defect : defects)
     {
         if (fingerPoints.size() == 5)
@@ -55,21 +56,38 @@ vector<Point> FingersDetector::countFingers(const Mat &frame, vector<Mat *> outp
         int b = sqrt(std::pow((far.x - start.x), 2) + std::pow(far.y - start.y, 2));
         int c = sqrt(std::pow((end.x - far.x), 2) + std::pow(end.y - far.y, 2));
         float angle = acos((std::pow(b, 2) + std::pow(c, 2) - std::pow(a, 2)) / (2 * b * c));
+        float decimalAngle = angle * (180 / M_PI);
+        float area = b* c * sin(decimalAngle) / 2;
 
-        // if (Helpers::pointTooFarFromOthers(fingerPoints, start, TOO_FAR_THRESHOLD))
-        //     continue;
+//         if (Helpers::pointTooFarFromOthers(fingerPoints, start, TOO_FAR_THRESHOLD))
+//             continue;
+        if(std::abs(area) >= AREA_TOO_BIG)
+            continue;
 
-        if (angle <= M_PI / 2 && end.y + CLOSE_POINTS_THRESHOLD < handCenter.y && start.y + CLOSE_POINTS_THRESHOLD < handCenter.y)
+        if (angle <= M_PI / 2 && end.y + CLOSE_POINTS_THRESHOLD < handCenter.y &&
+            start.y + CLOSE_POINTS_THRESHOLD < handCenter.y)
         {
+            std::cout << "area: " << area << std::endl;
+            std::cout << "angle: " << decimalAngle << std::endl;
+            std::cout << "a: " << a << ", b: " << b << ", c: " << c << std::endl;
             if (!Helpers::closePointExists(fingerPoints, start, CLOSE_POINTS_THRESHOLD))
                 fingerPoints.push_back(start);
             if (!Helpers::closePointExists(fingerPoints, end, CLOSE_POINTS_THRESHOLD))
                 fingerPoints.push_back(end);
-        }
-        else if (angle <= M_PI && far.y + CLOSE_POINTS_THRESHOLD < handCenter.y && fingerPoints.empty() && start.y + CLOSE_POINTS_THRESHOLD < handCenter.y)
+            allFingerPoints.push_back({start, end, far});
+        } else if (angle <= M_PI && fingerPoints.empty())
         {
-            if (!Helpers::closePointExists(fingerPoints, start, CLOSE_POINTS_THRESHOLD))
+            if(start.y > handCenter.y && end.y > handCenter.y)
+                continue;
+            if(Helpers::pointsDistance(start, handCenter) > Helpers::pointsDistance(end, handCenter))
+            {
                 fingerPoints.push_back(start);
+            }
+            else
+                fingerPoints.push_back(end);
+//            if (!Helpers::closePointExists(fingerPoints, toStore, CLOSE_POINTS_THRESHOLD))
+//                fingerPoints.push_back(start);
+            allFingerPoints.push_back({start, end, far});
         }
     }
 
@@ -79,11 +97,21 @@ vector<Point> FingersDetector::countFingers(const Mat &frame, vector<Mat *> outp
         drawContours(*f, vector<vector<Point>>(1, hull_points), 0, Scalar(0, 0, 255));
         rectangle(*f, boundingRectangle, Scalar(255, 0, 0));
         circle(*f, handCenter, 10, Scalar(255, 255, 0));
-        for (auto const &p : fingerPoints)
+//        for (auto const &p : fingerPoints)
+//        {
+//            circle(*f, p, 8, Scalar(255, 0, 0));
+//        }
+        for (auto const &l : allFingerPoints)
         {
-            circle(*f, p, 8, Scalar(255, 0, 0));
+            circle(*f, l.at(0), 8, Scalar(0, 0, 255));
+            line(*f, l.at(0), l.at(1), Scalar(255, 0, 0));
+            circle(*f, l.at(1), 8, Scalar(255, 0, 0));
+            line(*f, l.at(1), l.at(2), Scalar(255, 0, 0));
+            line(*f, l.at(0), l.at(2), Scalar(255, 0, 0));
+            circle(*f, l.at(2), 8, Scalar(0, 255, 0));
         }
-        putText(*f, std::to_string(fingerPoints.size()), Point(handCenter.x, handCenter.y + CLOSE_POINTS_THRESHOLD), FONT_HERSHEY_SIMPLEX, 2, Scalar(0, 0, 255, 255));
+        putText(*f, std::to_string(fingerPoints.size()), Point(handCenter.x, handCenter.y + CLOSE_POINTS_THRESHOLD),
+                FONT_HERSHEY_SIMPLEX, 2, Scalar(0, 0, 255, 255));
     }
 
     std::cout << fingerPoints.size() << std::endl;

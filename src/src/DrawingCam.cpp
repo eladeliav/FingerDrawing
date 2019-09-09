@@ -53,6 +53,7 @@ DrawingCam::DrawingCam(int id)
         throw std::runtime_error("Failed to open camera");
 
     cam >> frame;
+    flip(frame, frame, 1);
 
     if (frame.empty())
         throw std::runtime_error("Received empty frame");
@@ -70,6 +71,7 @@ void DrawingCam::start()
     for (char user_input = cv::waitKey(10); user_input != 27; user_input = cv::waitKey(10))
     {
         cam >> frame;
+        flip(frame, frame, 1);
         Mat displayCanvas;
         // cvtColor(frame, hsv, COLOR_BGR2HSV);
         // inRange(hsv, lower, upper, gloveMask);
