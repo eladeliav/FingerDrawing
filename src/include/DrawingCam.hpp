@@ -7,13 +7,27 @@
 
 #include <iostream>
 #include <opencv2/opencv.hpp>
-#include "ForegroundExtractor.hpp"
-#include "SkinDetector.hpp"
-#include "FacesRemover.hpp"
 #include "FingersDetector.hpp"
+#include "ForegroundExtractor.hpp"
+#include "FacesRemover.hpp"
+#include <vector>
 
 #define WINDOW_NAME "Frame"
+#define OFFSET 60
 
+using std::vector;
+
+void mouseCallBack(int event, int x, int y, int flags, void *userdata);
+
+struct FrameAndValues
+{
+    FrameAndValues(Mat *frame, Scalar *lower, Scalar *upper) : frame(frame), lower(lower), upper(upper)
+    {}
+
+    cv::Mat* frame;
+    Scalar* lower;
+    Scalar* upper;
+};
 
 class DrawingCam
 {
@@ -21,18 +35,20 @@ private:
     int cam_id;
     cv::VideoCapture cam;
 
-    cv::Mat frame, frameClone, canvas, foreground, skinMask;
+    cv::Mat frame, canvas, foreground, hsv;
 
     cv::Point currentPointerPos;
     cv::Scalar brushColor, eraserColor;
     int brushSize;
 
-    ForegroundExtractor foregroundExtractor;
-    SkinDetector skinDetector;
-
     vector<cv::Point> fingerPoints;
 
+    ForegroundExtractor foregroundExtractor;
+
     void draw();
+
+    Scalar lower = Scalar(0, 0, 0);
+    Scalar upper = Scalar(255, 255, 255);
 
 public:
     DrawingCam(int id = 0);

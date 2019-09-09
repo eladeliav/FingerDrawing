@@ -17,15 +17,8 @@ void FacesRemover::removeFaces(Mat &frame, Mat &output)
     equalizeHist(frameGray, frameGray);
 
     cascadeClassifier.detectMultiScale(frameGray, faces, 1.1, 2, 0 | CASCADE_SCALE_IMAGE, Size(120, 120));
-
-    for (size_t i = 0; i < faces.size(); i++)
+    for(auto const& r : faces)
     {
-        rectangle(
-                output,
-                Point(faces[i].x, faces[i].y),
-                Point(faces[i].x + faces[i].width, faces[i].y + faces[i].height),
-                Scalar(0, 0, 0),
-                -1
-        );
+        rectangle(output, Point(r.x - 50, r.y - 50), Point(r.x + r.width * 2, r.y + r.height * 3), Scalar(0, 0, 0), FILLED);
     }
 }

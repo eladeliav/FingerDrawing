@@ -14,11 +14,15 @@ set(SOURCES
         src/src/main.cpp
         src/include/DrawingCam.hpp
         src/src/DrawingCam.cpp
-        src/src/ForegroundExtractor.cpp
+        src/src/FingersDetector.cpp
+        src/include/FingersDetector.hpp
+        src/src/Helpers.cpp
+        src/include/Helpers.hpp
         src/include/ForegroundExtractor.hpp
-        src/src/SkinDetector.cpp src/include/SkinDetector.hpp
-        src/src/FacesRemover.cpp src/include/FacesRemover.hpp
-        src/src/FingersDetector.cpp src/include/FingersDetector.hpp)
+        src/src/ForegroundExtractor.cpp
+        src/include/FacesRemover.hpp
+        src/src/FacesRemover.cpp
+)
 
 include_directories(${OpenCV_INCLUDE_DIRS})
 
