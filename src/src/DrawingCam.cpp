@@ -37,16 +37,8 @@ void overlayImage(Mat *src, Mat *overlay, const Point &location = Point(0, 0))
     }
 }
 
-DrawingCam::DrawingCam(int id)
+void DrawingCam::initCamera()
 {
-    cam_id = id;
-    brushSize = 5;
-
-    currentPointerPos = cv::Point(0, 0);
-
-    eraserColor = cv::Scalar(0, 0, 0);
-    brushColor = cv::Scalar(250, 10, 10);
-
     cam = cv::VideoCapture(cam_id);
 
     if (!cam.isOpened())
@@ -59,6 +51,12 @@ DrawingCam::DrawingCam(int id)
 
     canvas = cv::Mat(frame.size(), CV_8UC3);
     canvas = eraserColor;
+}
+
+DrawingCam::DrawingCam(int id) //: communicator(communicator1)
+{
+    cam_id = id;
+    initCamera();
 }
 
 void DrawingCam::start()
@@ -84,7 +82,7 @@ void DrawingCam::start()
         putText(displayCanvas, sizeAndColor, Point(0, 50), FONT_HERSHEY_SIMPLEX, 2, Scalar(0, 0, 255, 255));
 
         cv::imshow(WINDOW_NAME, frame);
-        imshow("mask", gloveMask);
+        //imshow("mask", gloveMask);
         imshow("canvas", displayCanvas);
         FrameAndValues data(&hsv, &lower, &upper);
         setMouseCallback(WINDOW_NAME, mouseCallBack, &data);
@@ -110,9 +108,34 @@ void DrawingCam::draw()
     {
         currentPointerPos = fingerPoints.at(0);
         if (!Helpers::closePointExists(frame, currentPointerPos, 5))
-            cv::circle(canvas, currentPointerPos, brushSize, brushColor, brushSize);
+        {
+            cv::circle(canvas, currentPointerPos, brushSize, brushColor, FILLED);
+            //communicator.sendPoint(DrawPoint(currentPointerPos, brushSize));
+        }
     }
 }
+
+//void DrawingCam::getPeerPoints()
+//{
+//    while(true)
+//    {
+//        DrawPoint p = DrawPoint();
+//        try
+//        {
+//            DrawPoint p = communicator.getPoint();
+//        }catch(UniSocketException& e)
+//        {
+//            std::cout << e << std::endl;
+//            break;
+//        }
+//
+//        if(p.p != Point(-1, -1) && p.size != -1)
+//        {
+//            cv::circle(canvas, p.p, p.size, brushColor, FILLED);
+//        }
+//
+//    }
+//}
 
 void mouseCallBack(int event, int x, int y, int flags, void *frameAndValues)
 {

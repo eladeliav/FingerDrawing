@@ -8,7 +8,9 @@
 #include <iostream>
 #include <opencv2/opencv.hpp>
 #include "FingersDetector.hpp"
+#include "Communicator.hpp"
 #include <vector>
+#include <thread>
 
 #define WINDOW_NAME "Frame"
 #define OFFSET 60
@@ -22,9 +24,9 @@ struct FrameAndValues
     FrameAndValues(Mat *frame, Scalar *lower, Scalar *upper) : frame(frame), lower(lower), upper(upper)
     {}
 
-    cv::Mat* frame;
-    Scalar* lower;
-    Scalar* upper;
+    cv::Mat *frame;
+    Scalar *lower;
+    Scalar *upper;
 };
 
 class DrawingCam
@@ -35,19 +37,23 @@ private:
 
     cv::Mat frame, canvas, gloveMask, hsv;
 
-    cv::Point currentPointerPos;
-    cv::Scalar brushColor, eraserColor;
-    int brushSize;
+    cv::Point currentPointerPos = Point(0, 0);
+    cv::Scalar brushColor = cv::Scalar(250, 10, 10), eraserColor = cv::Scalar(0, 0, 0);
+    int brushSize = 5;
 
     vector<cv::Point> fingerPoints;
-
-    void draw();
 
     Scalar lower = Scalar(0, 0, 0);
     Scalar upper = Scalar(255, 255, 255);
 
+    //Communicator communicator;
+
+    void draw();
+    void initCamera();
+    void getPeerPoints();
+
 public:
-    DrawingCam(int id = 0);
+    DrawingCam(int id = 1);
 
     void start();
 };
