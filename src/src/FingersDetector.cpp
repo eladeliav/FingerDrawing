@@ -6,7 +6,7 @@
 #include <iostream>
 #include <math.h>
 
-vector<Point> FingersDetector::countFingers(const Mat &frame, vector<Mat*> outputFrames)
+vector<Point> FingersDetector::countFingers(const Mat &frame, vector<Mat *> outputFrames)
 {
     if (frame.empty())
         return vector<Point>();
@@ -27,9 +27,8 @@ vector<Point> FingersDetector::countFingers(const Mat &frame, vector<Mat*> outpu
     convexHull(maxContour, hull_ints, false);
     Rect boundingRectangle = boundingRect(hull_points);
     Point handCenter(
-            (boundingRectangle.tl().x + boundingRectangle.br().x) / 2,
-            (boundingRectangle.tl().y + boundingRectangle.br().y) / 2
-    );
+        (boundingRectangle.tl().x + boundingRectangle.br().x) / 2,
+        (boundingRectangle.tl().y + boundingRectangle.br().y) / 2);
 
     vector<Vec4i> defects;
     if (hull_ints.size() <= 3)
@@ -38,7 +37,6 @@ vector<Point> FingersDetector::countFingers(const Mat &frame, vector<Mat*> outpu
     convexityDefects(Mat(maxContour), hull_ints, defects);
     if (defects.empty())
         return vector<Point>();
-
     vector<Point> fingerPoints;
     for (auto &defect : defects)
     {
@@ -58,25 +56,24 @@ vector<Point> FingersDetector::countFingers(const Mat &frame, vector<Mat*> outpu
         int c = sqrt(std::pow((end.x - far.x), 2) + std::pow(end.y - far.y, 2));
         float angle = acos((std::pow(b, 2) + std::pow(c, 2) - std::pow(a, 2)) / (2 * b * c));
 
-        if (angle <= M_PI / 2 && end.y + CLOSE_POINTS_THRESHOLD < handCenter.y)
-        {
-            std::cout << "far point: " << far << std::endl;
-            std::cout << "far y: " << far.y << " center y: " << handCenter.y << std::endl;
+        // if (Helpers::pointTooFarFromOthers(fingerPoints, start, TOO_FAR_THRESHOLD))
+        //     continue;
 
+        if (angle <= M_PI / 2 && end.y + CLOSE_POINTS_THRESHOLD < handCenter.y && start.y + CLOSE_POINTS_THRESHOLD < handCenter.y)
+        {
             if (!Helpers::closePointExists(fingerPoints, start, CLOSE_POINTS_THRESHOLD))
                 fingerPoints.push_back(start);
             if (!Helpers::closePointExists(fingerPoints, end, CLOSE_POINTS_THRESHOLD))
                 fingerPoints.push_back(end);
-        } else if (angle <= M_PI && far.y + CLOSE_POINTS_THRESHOLD < handCenter.y && fingerPoints.empty()
-        && start.y + CLOSE_POINTS_THRESHOLD < handCenter.y)
+        }
+        else if (angle <= M_PI && far.y + CLOSE_POINTS_THRESHOLD < handCenter.y && fingerPoints.empty() && start.y + CLOSE_POINTS_THRESHOLD < handCenter.y)
         {
             if (!Helpers::closePointExists(fingerPoints, start, CLOSE_POINTS_THRESHOLD))
                 fingerPoints.push_back(start);
         }
     }
 
-
-    for(auto& f : outputFrames)
+    for (auto &f : outputFrames)
     {
         drawContours(*f, contours, maxIndex, Scalar(0, 255, 0));
         drawContours(*f, vector<vector<Point>>(1, hull_points), 0, Scalar(0, 0, 255));
@@ -89,14 +86,13 @@ vector<Point> FingersDetector::countFingers(const Mat &frame, vector<Mat*> outpu
         putText(*f, std::to_string(fingerPoints.size()), Point(handCenter.x, handCenter.y + CLOSE_POINTS_THRESHOLD), FONT_HERSHEY_SIMPLEX, 2, Scalar(0, 0, 255, 255));
     }
 
-
     std::cout << fingerPoints.size() << std::endl;
     return fingerPoints;
 }
 
 vector<vector<Point>> FingersDetector::getContours(const Mat &mask, vector<Vec4i> &hierarchy, int &maxIndex)
 {
-    Mat thresh = mask;//threshImage(mask);
+    Mat thresh = threshImage(mask);
     if (thresh.empty() || thresh.channels() != 1)
     {
         maxIndex = -1;
@@ -122,13 +118,16 @@ vector<vector<Point>> FingersDetector::getContours(const Mat &mask, vector<Vec4i
     return contours;
 }
 
-//Mat FingersDetector::threshImage(const Mat &frame)
-//{
-//    Mat gray, blur, thresh;
-//    cvtColor(frame, gray, COLOR_BGR2GRAY);
-//    GaussianBlur(gray, blur, Size(41, 41), 0);
-//    threshold(blur, thresh, 80, 255, THRESH_BINARY);
-//
-//    imshow("thresh", thresh);
-//    return thresh;
-//}
+Mat FingersDetector::threshImage(const Mat &frame)
+{
+    Mat gray, blur, thresh;
+    cvtColor(frame, gray, COLOR_BGR2GRAY);
+    GaussianBlur(gray, blur, Size(41, 41), 0);
+    threshold(blur, thresh, 80, 255, THRESH_BINARY);
+
+    Mat element = getStructuringElement(MARKER_CROSS, Size(20, 20));
+    morphologyEx(thresh, thresh, MORPH_CLOSE, element);
+
+    imshow("thresh", thresh);
+    return thresh;
+}

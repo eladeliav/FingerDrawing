@@ -18,13 +18,15 @@ set(SOURCES
         src/include/FingersDetector.hpp
         src/src/GloveDetector.cpp
         src/include/GloveDetector.hpp
-        src/include/Helpers.cpp src/include/Helpers.hpp src/src/Communicator.cpp src/include/Communicator.hpp)
+        src/include/Helpers.cpp 
+        src/include/Helpers.hpp
+        src/include/ForegroundExtractor.hpp
+        src/src/ForegroundExtractor.cpp
+        src/include/FacesRemover.hpp
+        src/src/FacesRemover.cpp
+)
 
 include_directories(${OpenCV_INCLUDE_DIRS})
 
-
-set(UniSockets_DIR $ENV{UNISOCKETS_DIR}) # set directory of UniSocketsLib
-find_package(UniSockets REQUIRED) # find package
-
 add_executable(${PROJECT_NAME} ${SOURCES})
-target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS} UniSockets::UniSockets)
+target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS})

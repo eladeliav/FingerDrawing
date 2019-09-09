@@ -16,6 +16,7 @@ namespace Helpers
     bool closePointExists(const vector<Point> &points, const Point &point, int thresh);
     double pointsDistance(const Point& a, const Point& b);
     bool closePointExists(const Mat& frame, const Point& point, int thresh);
+    bool pointTooFarFromOthers(const vector<Point>& points, const Point& point, int thresh);
 };
 
 

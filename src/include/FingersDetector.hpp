@@ -13,6 +13,7 @@ using std::vector;
 using namespace cv;
 
 #define CLOSE_POINTS_THRESHOLD 15
+#define TOO_FAR_THRESHOLD 150
 
 class FingersDetector
 {
@@ -20,6 +21,7 @@ public:
     static vector<Point> countFingers(const Mat& frame, vector<Mat*> outputFrames = vector<Mat*>());
 private:
     static vector<vector<Point>> getContours(const Mat& mask, vector<Vec4i> &hierarchy, int &maxIndex);
+    static Mat threshImage(const Mat &frame);
 };
 
 
