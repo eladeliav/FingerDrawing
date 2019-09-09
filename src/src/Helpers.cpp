@@ -2,7 +2,7 @@
 // Created by elade on 9/7/2019.
 //
 
-#include "Helpers.hpp"
+#include "../include/Helpers.hpp"
 
 bool Helpers::closePointExists(const vector<Point> &points, const Point &point, int thresh)
 {

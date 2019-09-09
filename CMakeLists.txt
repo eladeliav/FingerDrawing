@@ -16,9 +16,7 @@ set(SOURCES
         src/src/DrawingCam.cpp
         src/src/FingersDetector.cpp
         src/include/FingersDetector.hpp
-        src/src/GloveDetector.cpp
-        src/include/GloveDetector.hpp
-        src/include/Helpers.cpp 
+        src/src/Helpers.cpp
         src/include/Helpers.hpp
         src/include/ForegroundExtractor.hpp
         src/src/ForegroundExtractor.cpp
