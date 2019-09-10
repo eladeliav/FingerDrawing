@@ -64,6 +64,9 @@ vector<Point> FingersDetector::countFingers(const Mat &frame, vector<Mat *> outp
         if(std::abs(area) >= AREA_TOO_BIG)
             continue;
 
+        if(start.y > far.y && end.y > far.y)
+            continue;
+
         if (angle <= M_PI / 2 && end.y + CLOSE_POINTS_THRESHOLD < handCenter.y &&
             start.y + CLOSE_POINTS_THRESHOLD < handCenter.y)
         {
@@ -75,11 +78,11 @@ vector<Point> FingersDetector::countFingers(const Mat &frame, vector<Mat *> outp
             if (!Helpers::closePointExists(fingerPoints, end, CLOSE_POINTS_THRESHOLD))
                 fingerPoints.push_back(end);
             allFingerPoints.push_back({start, end, far});
-        } else if (angle <= M_PI && fingerPoints.empty())
+        } else if (angle <= M_PI && fingerPoints.empty() && far.y < handCenter.y && start.y < handCenter.y && end.y < handCenter.y)
         {
             if(start.y > handCenter.y && end.y > handCenter.y)
                 continue;
-            if(Helpers::pointsDistance(start, handCenter) > Helpers::pointsDistance(end, handCenter))
+            if(start.y < end.y)
             {
                 fingerPoints.push_back(start);
             }
