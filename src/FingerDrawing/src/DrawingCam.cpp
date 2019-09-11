@@ -110,7 +110,7 @@ void DrawingCam::start()
 
         cv::imshow(WINDOW_NAME, frame);
         //imshow("Foreground", foreground);
-        //imshow("canvas", displayCanvas);
+        imshow("canvas", displayCanvas);
         //imshow("roi", roi);
         FrameAndValues data(&hsv, &lower, &upper);
         setMouseCallback(WINDOW_NAME, mouseCallBack, &data);

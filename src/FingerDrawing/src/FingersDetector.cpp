@@ -131,7 +131,7 @@ vector<vector<Point>> FingersDetector::getContours(const Mat &mask, vector<Vec4i
     maxIndex = -1;
     double maxArea = 0;
 
-    for (int i = 0; i < contours.size(); i++)
+    for (size_t i = 0; i < contours.size(); i++)
     {
         double area = contourArea(contours[i], false);
         if (area > maxArea)
