@@ -70,9 +70,6 @@ vector<Point> FingersDetector::countFingers(const Mat &frame, vector<Mat *> outp
 
         if (angle <= M_PI / 2)
         {
-            std::cout << "area: " << area << std::endl;
-            std::cout << "angle: " << decimalAngle << std::endl;
-            std::cout << "a: " << a << ", b: " << b << ", c: " << c << std::endl;
             if (!Helpers::closePointExists(fingerPoints, start, CLOSE_POINTS_THRESHOLD))
                 fingerPoints.push_back(start);
             if (!Helpers::closePointExists(fingerPoints, end, CLOSE_POINTS_THRESHOLD))
