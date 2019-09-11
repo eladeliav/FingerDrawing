@@ -75,7 +75,8 @@ void DrawingCam::sendPoint(const Point& p)
 {
     if(sock.valid())
     {
-        string msg = "X:" + std::to_string(p.x) + "Y:" + std::to_string(p.y) + "S:" + std::to_string(brushSize);
+        string msg = "X:" + std::to_string(p.x) + "Y:" + std::to_string(p.y) + "S:" + std::to_string(brushSize) + "END";
+        std::cout << "about to send point: " << msg << std::endl;
         sock.send(msg);
     }
     else
@@ -162,7 +163,7 @@ void DrawingCam::getPoints()
                 string msg = buffer;
                 xS = msg.substr(msg.find("X:") + 2, msg.find("Y:"));
                 yS = msg.substr(msg.find("Y:") + 2, msg.rfind("S:"));
-                sS = msg.substr(msg.rfind("S:") + 2);
+                sS = msg.substr(msg.rfind("S:") + 2, msg.rfind("END"));
                 int x, y, s;
                 try
                 {
