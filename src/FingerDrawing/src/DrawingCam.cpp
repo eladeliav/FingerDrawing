@@ -37,7 +37,7 @@ void overlayImage(Mat *src, Mat *overlay, const Point &location = Point(0, 0))
     }
 }
 
-DrawingCam::DrawingCam(int id)
+DrawingCam::DrawingCam(int id, string ip, int port)
 {
     cam_id = id;
     brushSize = 5;
@@ -62,7 +62,7 @@ DrawingCam::DrawingCam(int id)
 
     foregroundExtractor = ForegroundExtractor();
 
-    sock = UniSocket("127.0.0.1", 1234);
+    sock = UniSocket(ip, port);
     thread getPointsThread(&DrawingCam::getPoints, this);
     getPointsThread.detach();
 

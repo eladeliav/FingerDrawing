@@ -62,7 +62,7 @@ private:
     void getPoints();
 
 public:
-    DrawingCam(int id = 0);
+    DrawingCam(int id = 0, string ip="127.0.0.1", int port=1234);
 
     void start();
 };
