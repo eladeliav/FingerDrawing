@@ -59,17 +59,17 @@ vector<Point> FingersDetector::countFingers(const Mat &frame, vector<Mat *> outp
         float decimalAngle = angle * (180 / M_PI);
         float area = b* c * sin(decimalAngle) / 2;
 
-//         if (Helpers::pointTooFarFromOthers(fingerPoints, start, TOO_FAR_THRESHOLD))
-//             continue;
         if(std::abs(area) >= AREA_TOO_BIG)
             continue;
 
-        if (angle <= M_PI / 2 && end.y + CLOSE_POINTS_THRESHOLD < handCenter.y &&
-            start.y + CLOSE_POINTS_THRESHOLD < handCenter.y)
+        if(start.y > far.y && end.y > far.y)
+            continue;
+
+        if(far.y > handCenter.y)
+            continue;
+
+        if (angle <= M_PI / 2)
         {
-            std::cout << "area: " << area << std::endl;
-            std::cout << "angle: " << decimalAngle << std::endl;
-            std::cout << "a: " << a << ", b: " << b << ", c: " << c << std::endl;
             if (!Helpers::closePointExists(fingerPoints, start, CLOSE_POINTS_THRESHOLD))
                 fingerPoints.push_back(start);
             if (!Helpers::closePointExists(fingerPoints, end, CLOSE_POINTS_THRESHOLD))
@@ -79,14 +79,12 @@ vector<Point> FingersDetector::countFingers(const Mat &frame, vector<Mat *> outp
         {
             if(start.y > handCenter.y && end.y > handCenter.y)
                 continue;
-            if(Helpers::pointsDistance(start, handCenter) > Helpers::pointsDistance(end, handCenter))
+            if(start.y < end.y)
             {
                 fingerPoints.push_back(start);
             }
             else
                 fingerPoints.push_back(end);
-//            if (!Helpers::closePointExists(fingerPoints, toStore, CLOSE_POINTS_THRESHOLD))
-//                fingerPoints.push_back(start);
             allFingerPoints.push_back({start, end, far});
         }
     }
@@ -97,10 +95,10 @@ vector<Point> FingersDetector::countFingers(const Mat &frame, vector<Mat *> outp
         drawContours(*f, vector<vector<Point>>(1, hull_points), 0, Scalar(0, 0, 255));
         rectangle(*f, boundingRectangle, Scalar(255, 0, 0));
         circle(*f, handCenter, 10, Scalar(255, 255, 0));
-//        for (auto const &p : fingerPoints)
-//        {
-//            circle(*f, p, 8, Scalar(255, 0, 0));
-//        }
+        for (auto const &p : fingerPoints)
+        {
+            circle(*f, p, 10, Scalar(255, 255, 0));
+        }
         for (auto const &l : allFingerPoints)
         {
             circle(*f, l.at(0), 8, Scalar(0, 0, 255));
@@ -153,7 +151,7 @@ Mat FingersDetector::threshImage(const Mat &frame)
     GaussianBlur(gray, blur, Size(41, 41), 0);
     threshold(blur, thresh, 80, 255, THRESH_BINARY);
 
-    Mat element = getStructuringElement(MARKER_CROSS, Size(20, 20));
+    Mat element = getStructuringElement(MARKER_CROSS, Size(15, 15));
     morphologyEx(thresh, thresh, MORPH_CLOSE, element);
 
     imshow("thresh", thresh);
