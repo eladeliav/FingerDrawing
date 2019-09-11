@@ -109,9 +109,9 @@ void DrawingCam::start()
         putText(displayCanvas, sizeAndColor, Point(0, 50), FONT_HERSHEY_SIMPLEX, 2, Scalar(0, 0, 255, 255));
 
         cv::imshow(WINDOW_NAME, frame);
-        imshow("Foreground", foreground);
-        imshow("canvas", displayCanvas);
-        imshow("roi", roi);
+        //imshow("Foreground", foreground);
+        //imshow("canvas", displayCanvas);
+        //imshow("roi", roi);
         FrameAndValues data(&hsv, &lower, &upper);
         setMouseCallback(WINDOW_NAME, mouseCallBack, &data);
 
