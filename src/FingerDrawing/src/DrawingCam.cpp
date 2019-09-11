@@ -62,7 +62,7 @@ DrawingCam::DrawingCam(int id)
 
     foregroundExtractor = ForegroundExtractor();
 
-    sock = UniSocket("localhost", 1234);
+    sock = UniSocket("127.0.0.1", 1234);
     thread getPointsThread(&DrawingCam::getPoints, this);
     getPointsThread.detach();
 
@@ -119,7 +119,10 @@ void DrawingCam::start()
         else if (user_input == '-' && brushSize > 1)
             brushSize -= 5;
         else if (user_input == 'r')
+        {
             canvas = eraserColor;
+            sendPoint(Point(-1, -1));
+        }
         else if (user_input == 'e')
             brushColor = eraserColor;
         else if (user_input == 'b')
@@ -166,7 +169,10 @@ void DrawingCam::getPoints()
                     x = std::stoi(xS);
                     y = std::stoi(yS);
                     s = std::stoi(sS);
-                    cv::circle(canvas, Point(x, y), s, brushColor, brushSize);
+                    if(x == -1 && y == -1)
+                        canvas = eraserColor;
+                    else
+                        cv::circle(canvas, Point(x, y), s, brushColor, brushSize);
                 }catch(std::invalid_argument& e)
                 {
                     std::cout << e.what() << std::endl;
