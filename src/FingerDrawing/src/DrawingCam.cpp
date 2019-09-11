@@ -62,10 +62,26 @@ DrawingCam::DrawingCam(int id)
 
     foregroundExtractor = ForegroundExtractor();
 
+    sock = UniSocket("localhost", 1234);
+    thread getPointsThread(&DrawingCam::getPoints, this);
+    getPointsThread.detach();
 
     canvas = cv::Mat(roi.size(), CV_8UC3);
     canvas = eraserColor;
     foregroundExtractor.calibrate(roi);
+}
+
+void DrawingCam::sendPoint(const Point& p)
+{
+    if(sock.valid())
+    {
+        string msg = "X:" + std::to_string(p.x) + "Y:" + std::to_string(p.y) + "S:" + std::to_string(brushSize);
+        sock.send(msg);
+    }
+    else
+    {
+        std::cout << "Socket invalid can't send to peers" << std::endl;
+    }
 }
 
 void DrawingCam::start()
@@ -121,7 +137,54 @@ void DrawingCam::draw()
     {
         currentPointerPos = fingerPoints.at(0);
         if (!Helpers::closePointExists(frame, currentPointerPos, 5))
+        {
             cv::circle(canvas, currentPointerPos, brushSize, brushColor, brushSize);
+            sendPoint(currentPointerPos);
+        }
+
+    }
+}
+
+void DrawingCam::getPoints()
+{
+    static char buffer[DEFAULT_BUFFER_LEN] = {0};
+    while(sock.valid())
+    {
+        try
+        {
+            int bytesReceived = sock.recv(buffer);
+            if(bytesReceived > 0)
+            {
+                string xS, yS, sS;
+                string msg = buffer;
+                xS = msg.substr(msg.find("X:") + 2, msg.find("Y:"));
+                yS = msg.substr(msg.find("Y:") + 2, msg.rfind("S:"));
+                sS = msg.substr(msg.rfind("S:") + 2);
+                int x, y, s;
+                try
+                {
+                    x = std::stoi(xS);
+                    y = std::stoi(yS);
+                    s = std::stoi(sS);
+                    cv::circle(canvas, Point(x, y), s, brushColor, brushSize);
+                }catch(std::invalid_argument& e)
+                {
+                    std::cout << e.what() << std::endl;
+                }
+
+            }
+        }catch(UniSocketException& e)
+        {
+            if(e.getErrorType() != UniSocketException::TIMED_OUT)
+            {
+                std::cout << e << std::endl;
+                sock.close();
+                UniSocket::cleanup();
+                exit(1);
+            }
+        }
+
+
     }
 }
 
