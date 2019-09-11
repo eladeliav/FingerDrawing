@@ -7,6 +7,7 @@
 
 #include <iostream>
 #include <opencv2/opencv.hpp>
+#include <UniSockets/Core.hpp>
 #include "FingersDetector.hpp"
 #include "ForegroundExtractor.hpp"
 #include "FacesRemover.hpp"
@@ -18,16 +19,6 @@
 using std::vector;
 
 void mouseCallBack(int event, int x, int y, int flags, void *userdata);
-
-struct FrameAndValues
-{
-    FrameAndValues(Mat *frame, Scalar *lower, Scalar *upper) : frame(frame), lower(lower), upper(upper)
-    {}
-
-    cv::Mat* frame;
-    Scalar* lower;
-    Scalar* upper;
-};
 
 class DrawingCam
 {
