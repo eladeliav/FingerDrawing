@@ -35,7 +35,8 @@ private:
     int cam_id;
     cv::VideoCapture cam;
 
-    cv::Mat frame, canvas, foreground, hsv;
+    Rect region_of_interest;
+    cv::Mat frame, canvas, foreground, hsv, roi;
 
     cv::Point currentPointerPos;
     cv::Scalar brushColor, eraserColor;

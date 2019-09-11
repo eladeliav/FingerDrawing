@@ -17,8 +17,9 @@ void FacesRemover::removeFaces(Mat &frame, Mat &output)
     equalizeHist(frameGray, frameGray);
 
     cascadeClassifier.detectMultiScale(frameGray, faces, 1.1, 2, 0 | CASCADE_SCALE_IMAGE, Size(120, 120));
-    for(auto const& r : faces)
+    if(faces.size() > 0)
     {
-        rectangle(output, Point(r.x - 50, r.y - 50), Point(r.x + r.width * 2, r.y + r.height * 3), Scalar(0, 0, 0), FILLED);
+        putText(output, "Faces Detected in ROI!", Point(output.cols / 2 - 50, output.rows / 2), FONT_HERSHEY_SIMPLEX, 1, Scalar(0, 0, 255, 255));
     }
+
 }

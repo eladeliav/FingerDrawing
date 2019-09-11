@@ -3,7 +3,7 @@
 //
 #include "../include/DrawingCam.hpp"
 
-template <typename T>
+template<typename T>
 T CLAMP(const T &value, const T &low = 0, const T &high = 255)
 {
     return value < low ? low : (value > high ? high : value);
@@ -25,7 +25,7 @@ void overlayImage(Mat *src, Mat *overlay, const Point &location = Point(0, 0))
             if (fX >= overlay->cols)
                 break;
 
-            double opacity = ((double)overlay->data[fY * overlay->step + fX * overlay->channels() + 3]) / 255;
+            double opacity = ((double) overlay->data[fY * overlay->step + fX * overlay->channels() + 3]) / 255;
 
             for (int c = 0; opacity > 0 && c < src->channels(); ++c)
             {
@@ -54,6 +54,8 @@ DrawingCam::DrawingCam(int id)
 
     cam >> frame;
     flip(frame, frame, 1);
+    region_of_interest = Rect(frame.cols / 2, 0, frame.cols / 2, frame.rows / 1.5);
+    roi = frame(region_of_interest);
 
     if (frame.empty())
         throw std::runtime_error("Received empty frame");
@@ -61,9 +63,9 @@ DrawingCam::DrawingCam(int id)
     foregroundExtractor = ForegroundExtractor();
 
 
-    canvas = cv::Mat(frame.size(), CV_8UC3);
+    canvas = cv::Mat(roi.size(), CV_8UC3);
     canvas = eraserColor;
-    foregroundExtractor.calibrate(frame);
+    foregroundExtractor.calibrate(roi);
 }
 
 void DrawingCam::start()
@@ -72,20 +74,19 @@ void DrawingCam::start()
     {
         cam >> frame;
         flip(frame, frame, 1);
+        roi = frame(region_of_interest);
+
+        rectangle(frame, region_of_interest, Scalar(255, 0, 0));
+
         Mat displayCanvas;
-        // cvtColor(frame, hsv, COLOR_BGR2HSV);
-        // inRange(hsv, lower, upper, gloveMask);
 
-        // Mat element = getStructuringElement(MARKER_CROSS, Size(15, 15));
-        // morphologyEx(gloveMask, gloveMask, MORPH_CLOSE, element);
-
-        foreground = foregroundExtractor.extractForeground(frame);
-        FacesRemover::removeFaces(frame, foreground);
+        foreground = foregroundExtractor.extractForeground(roi);
+        FacesRemover::removeFaces(roi, frame);
         displayCanvas = canvas.clone();
-        fingerPoints = FingersDetector::countFingers(foreground, vector<Mat *>{&displayCanvas, &frame});
+        fingerPoints = FingersDetector::countFingers(foreground, vector<Mat *>{&displayCanvas, &roi});
 
         draw();
-        overlayImage(&frame, &canvas);
+        overlayImage(&roi, &canvas);
 
         std::string sizeAndColor = "Size: " + std::to_string(brushSize);
         putText(displayCanvas, sizeAndColor, Point(0, 50), FONT_HERSHEY_SIMPLEX, 2, Scalar(0, 0, 255, 255));
@@ -93,6 +94,7 @@ void DrawingCam::start()
         cv::imshow(WINDOW_NAME, frame);
         imshow("Foreground", foreground);
         imshow("canvas", displayCanvas);
+        imshow("roi", roi);
         FrameAndValues data(&hsv, &lower, &upper);
         setMouseCallback(WINDOW_NAME, mouseCallBack, &data);
 
@@ -127,7 +129,7 @@ void mouseCallBack(int event, int x, int y, int flags, void *frameAndValues)
 {
     if (event == EVENT_LBUTTONDOWN)
     {
-        auto *data = (FrameAndValues *)frameAndValues;
+        auto *data = (FrameAndValues *) frameAndValues;
         Vec3b px = (*data->frame).at<Vec3b>(y, x);
         int lh = CLAMP(px.val[0] - OFFSET);
         int ls = CLAMP(px.val[1] - OFFSET);
