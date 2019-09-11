@@ -141,7 +141,7 @@ void DrawingCam::draw()
         currentPointerPos = fingerPoints.at(0);
         if (!Helpers::closePointExists(frame, currentPointerPos, 5))
         {
-            cv::circle(canvas, currentPointerPos, brushSize, brushColor, brushSize);
+            cv::circle(canvas, currentPointerPos, brushSize, brushColor, FILLED);
             sendPoint(currentPointerPos);
         }
 
@@ -172,7 +172,7 @@ void DrawingCam::getPoints()
                     if(x == -1 && y == -1)
                         canvas = eraserColor;
                     else
-                        cv::circle(canvas, Point(x, y), s, brushColor, brushSize);
+                        cv::circle(canvas, Point(x, y), s, brushColor, FILLED);
                 }catch(std::invalid_argument& e)
                 {
                     std::cout << e.what() << std::endl;
