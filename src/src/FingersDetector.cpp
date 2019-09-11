@@ -58,9 +58,7 @@ vector<Point> FingersDetector::countFingers(const Mat &frame, vector<Mat *> outp
         float angle = acos((std::pow(b, 2) + std::pow(c, 2) - std::pow(a, 2)) / (2 * b * c));
         float decimalAngle = angle * (180 / M_PI);
         float area = b* c * sin(decimalAngle) / 2;
-
-//         if (Helpers::pointTooFarFromOthers(fingerPoints, start, TOO_FAR_THRESHOLD))
-//             continue;
+        
         if(std::abs(area) >= AREA_TOO_BIG)
             continue;
 
@@ -88,8 +86,6 @@ vector<Point> FingersDetector::countFingers(const Mat &frame, vector<Mat *> outp
             }
             else
                 fingerPoints.push_back(end);
-//            if (!Helpers::closePointExists(fingerPoints, toStore, CLOSE_POINTS_THRESHOLD))
-//                fingerPoints.push_back(start);
             allFingerPoints.push_back({start, end, far});
         }
     }
