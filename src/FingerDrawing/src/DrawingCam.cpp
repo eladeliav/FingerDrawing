@@ -285,4 +285,5 @@ void DrawingCam::calibrateBackground()
 void DrawingCam::resetCanvas()
 {
     canvas = eraserColor;
+    sendPoint(Point(-1, -1));
 }
