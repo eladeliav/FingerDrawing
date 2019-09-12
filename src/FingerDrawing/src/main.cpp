@@ -3,9 +3,11 @@
 //
 #include <iostream>
 #include <string>
-#include "../include/MainWindow.hpp"
+#include "ui/MainWindow.hpp"
 #include <QApplication>
+#include <thread>
 
+using std::thread;
 using std::string;
 
 #define DEF_IP "172.16.1.127"
@@ -16,7 +18,8 @@ int main(int argc, char **argv)
     QApplication a(argc, argv);
     MainWindow w;
     w.show();
-
+    thread mainLoopThread(&MainWindow::mainLoop, &w);
+    mainLoopThread.detach();
     return a.exec();
 //    string ip = DEF_IP;
 //    int port = DEFAULT_PORT;

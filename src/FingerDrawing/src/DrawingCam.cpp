@@ -186,8 +186,6 @@ void DrawingCam::start()
         else if (user_input == 's')
             skinDetector.sample(foreground);
     }
-    cv::destroyAllWindows();
-    cam.release();
 }
 
 void DrawingCam::draw()
@@ -202,4 +200,62 @@ void DrawingCam::draw()
         }
 
     }
+}
+
+DrawingCam::~DrawingCam()
+{
+    cv::destroyAllWindows();
+    cam.release();
+}
+
+Mat DrawingCam::getNextFrame(char user_input)
+{
+    cam >> frame;
+    flip(frame, frame, 1);
+    roi = frame(region_of_interest);
+
+    rectangle(frame, region_of_interest, Scalar(255, 0, 0));
+    Mat displayCanvas;
+
+    foreground = foregroundExtractor.extractForeground(roi);
+
+    if(!skinDetector.alreadySampled())
+        skinDetector.drawSampler(roi);
+    else
+        skinMask = skinDetector.genMask(foreground);
+
+
+    FacesRemover::removeFaces(roi, frame);
+    displayCanvas = canvas.clone();
+    fingerPoints = FingersDetector::countFingers(skinMask, vector<Mat *>{&displayCanvas, &roi});
+
+    draw();
+    overlayImage(&roi, &canvas);
+
+    std::string sizeAndColor = "Size: " + std::to_string(brushSize);
+    putText(displayCanvas, sizeAndColor, Point(0, 50), FONT_HERSHEY_SIMPLEX, 2, Scalar(0, 0, 255, 255));
+
+//    cv::imshow(WINDOW_NAME, frame);
+//    imshow("Foreground", foreground);
+//    imshow("canvas", displayCanvas);
+//    imshow("skin", skinMask);
+
+    if (user_input == '=' && brushSize < 25)
+        brushSize += 5;
+    else if (user_input == '-' && brushSize > 1)
+        brushSize -= 5;
+    else if (user_input == 'r')
+    {
+        canvas = eraserColor;
+        sendPoint(Point(-1, -1));
+    }
+    else if (user_input == 'e')
+        brushColor = eraserColor;
+    else if (user_input == 'b')
+        brushColor = cv::Scalar(250, 10, 10);
+    else if (user_input == 'c')
+        foregroundExtractor.calibrate(frame);
+    else if (user_input == 's')
+        skinDetector.sample(foreground);
+    return frame;
 }

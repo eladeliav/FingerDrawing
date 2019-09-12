@@ -5,7 +5,7 @@
 #include <QApplication>
 #include <string>
 #include <iostream>
-#include "../include/DrawingCam.hpp"
+#include "include/DrawingCam.hpp"
 
 using std::string;
 
@@ -23,10 +23,7 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
-
-private slots:
-    void on_pushButton_clicked();
-
+    void mainLoop();
 private:
     Ui::MainWindow *ui;
 };

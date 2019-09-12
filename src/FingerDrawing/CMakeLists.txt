@@ -26,9 +26,9 @@ set(SOURCES
         src/FacesRemover.cpp
         include/SkinDetector.hpp
         src/SkinDetector.cpp
-        include/MainWindow.hpp
-        src/MainWindow.cpp
-        mainwindow.ui
+        ui/MainWindow.hpp
+        ui/MainWindow.cpp
+        ui/mainwindow.ui
         )
 
 add_executable(${TARGET_NAME} ${SOURCES})
