@@ -61,12 +61,15 @@ DrawingCam::DrawingCam(int id, string ip, int port)
         throw std::runtime_error("Received empty frame");
 
     foregroundExtractor = ForegroundExtractor();
+    skinDetector = SkinDetector();
 
     sock = UniSocket(ip, port);
     thread getPointsThread(&DrawingCam::getPoints, this);
     getPointsThread.detach();
 
     canvas = cv::Mat(roi.size(), CV_8UC3);
+    skinMask = cv::Mat(roi.size(), CV_8UC3);
+    skinMask = eraserColor;
     canvas = eraserColor;
     foregroundExtractor.calibrate(roi);
 }
@@ -94,13 +97,19 @@ void DrawingCam::start()
         roi = frame(region_of_interest);
 
         rectangle(frame, region_of_interest, Scalar(255, 0, 0));
-
         Mat displayCanvas;
 
         foreground = foregroundExtractor.extractForeground(roi);
+
+        if(!skinDetector.alreadySampled())
+            skinDetector.drawSampler(roi);
+        else
+            skinMask = skinDetector.genMask(foreground);
+
+
         FacesRemover::removeFaces(roi, frame);
         displayCanvas = canvas.clone();
-        fingerPoints = FingersDetector::countFingers(foreground, vector<Mat *>{&displayCanvas, &roi});
+        fingerPoints = FingersDetector::countFingers(skinMask, vector<Mat *>{&displayCanvas, &roi});
 
         draw();
         overlayImage(&roi, &canvas);
@@ -111,7 +120,7 @@ void DrawingCam::start()
         cv::imshow(WINDOW_NAME, frame);
         imshow("Foreground", foreground);
         imshow("canvas", displayCanvas);
-        //imshow("roi", roi);
+        imshow("skin", skinMask);
 
         if (user_input == '=' && brushSize < 25)
             brushSize += 5;
@@ -128,6 +137,8 @@ void DrawingCam::start()
             brushColor = cv::Scalar(250, 10, 10);
         else if (user_input == 'c')
             foregroundExtractor.calibrate(frame);
+        else if (user_input == 's')
+            skinDetector.sample(foreground);
     }
     cv::destroyAllWindows();
     cam.release();

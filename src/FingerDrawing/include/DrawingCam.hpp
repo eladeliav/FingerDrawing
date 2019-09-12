@@ -10,6 +10,7 @@
 #include <UniSockets/Core.hpp>
 #include "FingersDetector.hpp"
 #include "ForegroundExtractor.hpp"
+#include "SkinDetector.hpp"
 #include "FacesRemover.hpp"
 #include <vector>
 #include <thread>
@@ -29,7 +30,7 @@ private:
     cv::VideoCapture cam;
 
     Rect region_of_interest;
-    cv::Mat frame, canvas, foreground, hsv, roi;
+    cv::Mat frame, canvas, foreground, skinMask, roi;
 
     cv::Point currentPointerPos;
     cv::Scalar brushColor, eraserColor;
@@ -38,6 +39,7 @@ private:
     vector<cv::Point> fingerPoints;
 
     ForegroundExtractor foregroundExtractor;
+    SkinDetector skinDetector;
 
     UniSocket sock;
 

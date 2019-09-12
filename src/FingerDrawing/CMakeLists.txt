@@ -12,6 +12,8 @@ set(SOURCES
         src/ForegroundExtractor.cpp
         include/FacesRemover.hpp
         src/FacesRemover.cpp
+        include/SkinDetector.hpp
+        src/SkinDetector.cpp
         )
 
 find_package(Qt5Widgets REQUIRED)
