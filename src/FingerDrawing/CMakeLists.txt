@@ -33,5 +33,8 @@ set(SOURCES
 
 add_executable(${TARGET_NAME} ${SOURCES})
 target_include_directories(${TARGET_NAME} PUBLIC ${OpenCV_INCLUDE_DIRS} ${UniSockets_INCLUDE_DIRS} ${Qt5Widgets_INCLUDE_DIRS})
-target_link_libraries(${TARGET_NAME} ${OpenCV_LIBS} UniSockets::UniSockets -static winpthread Qt5::Widgets)
+target_link_libraries(${TARGET_NAME} ${OpenCV_LIBS} UniSockets::UniSockets Qt5::Widgets)
+if(WIN32)
+    target_link_libraries(${TARGET_NAME} -static winpthread)
+    endif()
 message("-- Finished configuring Target: ${TARGET_NAME}")
