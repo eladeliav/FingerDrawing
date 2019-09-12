@@ -154,6 +154,6 @@ Mat FingersDetector::threshImage(const Mat &frame)
     Mat element = getStructuringElement(MARKER_CROSS, Size(15, 15));
     morphologyEx(thresh, thresh, MORPH_CLOSE, element);
 
-    //imshow("thresh", thresh);
+    imshow("thresh", thresh);
     return thresh;
 }

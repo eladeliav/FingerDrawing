@@ -22,18 +22,6 @@ using std::vector;
 using std::thread;
 using std::string;
 
-void mouseCallBack(int event, int x, int y, int flags, void *userdata);
-
-struct FrameAndValues
-{
-    FrameAndValues(Mat *frame, Scalar *lower, Scalar *upper) : frame(frame), lower(lower), upper(upper)
-    {}
-
-    cv::Mat* frame;
-    Scalar* lower;
-    Scalar* upper;
-};
-
 class DrawingCam
 {
 private:
@@ -54,9 +42,6 @@ private:
     UniSocket sock;
 
     void draw();
-
-    Scalar lower = Scalar(0, 0, 0);
-    Scalar upper = Scalar(255, 255, 255);
 
     void sendPoint(const Point& p);
     void getPoints();

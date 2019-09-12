@@ -109,11 +109,9 @@ void DrawingCam::start()
         putText(displayCanvas, sizeAndColor, Point(0, 50), FONT_HERSHEY_SIMPLEX, 2, Scalar(0, 0, 255, 255));
 
         cv::imshow(WINDOW_NAME, frame);
-        //imshow("Foreground", foreground);
+        imshow("Foreground", foreground);
         imshow("canvas", displayCanvas);
         //imshow("roi", roi);
-        FrameAndValues data(&hsv, &lower, &upper);
-        setMouseCallback(WINDOW_NAME, mouseCallBack, &data);
 
         if (user_input == '=' && brushSize < 25)
             brushSize += 5;
@@ -192,22 +190,5 @@ void DrawingCam::getPoints()
         }
 
 
-    }
-}
-
-void mouseCallBack(int event, int x, int y, int flags, void *frameAndValues)
-{
-    if (event == EVENT_LBUTTONDOWN)
-    {
-        auto *data = (FrameAndValues *) frameAndValues;
-        Vec3b px = (*data->frame).at<Vec3b>(y, x);
-        int lh = CLAMP(px.val[0] - OFFSET);
-        int ls = CLAMP(px.val[1] - OFFSET);
-        int lv = CLAMP(px.val[2] - OFFSET);
-        int uh = CLAMP(px.val[0] + OFFSET);
-        int us = CLAMP(px.val[1] + OFFSET);
-        int uv = CLAMP(px.val[2] + OFFSET);
-        *data->lower = Scalar(lh, ls, lv);
-        *data->upper = Scalar(uh, us, uv);
     }
 }
