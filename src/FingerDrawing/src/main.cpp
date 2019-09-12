@@ -3,7 +3,8 @@
 //
 #include <iostream>
 #include <string>
-#include "../include/DrawingCam.hpp"
+#include "../include/MainWindow.hpp"
+#include <QApplication>
 
 using std::string;
 
@@ -12,25 +13,30 @@ using std::string;
 
 int main(int argc, char **argv)
 {
-    string ip = DEF_IP;
-    int port = DEFAULT_PORT;
-    string answer;
-    userInput:
-    std::cout << "Use default settings?[y]es/[n]o" << std::endl;
-    std::cin >> answer;
-    if(answer == "n")
-    {
-        std::cout << "ip: " << std::endl;
-        std::cin >> ip;
-        std::cout << "port: " << std::endl;
-        std::cin >> port;
-    }
-    else if(answer != "y")
-    {
-        std::cout << "Invalid input..." << std::endl;
-        goto userInput;
-    }
-    DrawingCam cam(0, ip, port);
-    cam.start();
-    return 0;
+    QApplication a(argc, argv);
+    MainWindow w;
+    w.show();
+
+    return a.exec();
+//    string ip = DEF_IP;
+//    int port = DEFAULT_PORT;
+//    string answer;
+//    userInput:
+//    std::cout << "Use default settings?[y]es/[n]o" << std::endl;
+//    std::cin >> answer;
+//    if(answer == "n")
+//    {
+//        std::cout << "ip: " << std::endl;
+//        std::cin >> ip;
+//        std::cout << "port: " << std::endl;
+//        std::cin >> port;
+//    }
+//    else if(answer != "y")
+//    {
+//        std::cout << "Invalid input..." << std::endl;
+//        goto userInput;
+//    }
+//    DrawingCam cam(0, ip, port);
+//    cam.start();
+
 }

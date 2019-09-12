@@ -88,6 +88,52 @@ void DrawingCam::sendPoint(const Point& p)
     }
 }
 
+void DrawingCam::getPoints()
+{
+    static char buffer[DEFAULT_BUFFER_LEN] = {0};
+    while(sock.valid())
+    {
+        try
+        {
+            int bytesReceived = sock.recv(buffer);
+            if(bytesReceived > 0)
+            {
+                string xS, yS, sS;
+                string msg = buffer;
+                xS = msg.substr(msg.find("X:") + 2, msg.find("Y:"));
+                yS = msg.substr(msg.find("Y:") + 2, msg.rfind("S:"));
+                sS = msg.substr(msg.rfind("S:") + 2, msg.rfind("END"));
+                int x, y, s;
+                try
+                {
+                    x = std::stoi(xS);
+                    y = std::stoi(yS);
+                    s = std::stoi(sS);
+                    if(x == -1 && y == -1)
+                        canvas = eraserColor;
+                    else
+                        cv::circle(canvas, Point(x, y), s, brushColor, FILLED);
+                }catch(std::invalid_argument& e)
+                {
+                    std::cout << e.what() << std::endl;
+                }
+
+            }
+        }catch(UniSocketException& e)
+        {
+            if(e.getErrorType() != UniSocketException::TIMED_OUT)
+            {
+                std::cout << e << std::endl;
+                sock.close();
+                UniSocket::cleanup();
+                exit(1);
+            }
+        }
+
+
+    }
+}
+
 void DrawingCam::start()
 {
     for (char user_input = cv::waitKey(10); user_input != 27; user_input = cv::waitKey(10))
@@ -154,52 +200,6 @@ void DrawingCam::draw()
             cv::circle(canvas, currentPointerPos, brushSize, brushColor, FILLED);
             sendPoint(currentPointerPos);
         }
-
-    }
-}
-
-void DrawingCam::getPoints()
-{
-    static char buffer[DEFAULT_BUFFER_LEN] = {0};
-    while(sock.valid())
-    {
-        try
-        {
-            int bytesReceived = sock.recv(buffer);
-            if(bytesReceived > 0)
-            {
-                string xS, yS, sS;
-                string msg = buffer;
-                xS = msg.substr(msg.find("X:") + 2, msg.find("Y:"));
-                yS = msg.substr(msg.find("Y:") + 2, msg.rfind("S:"));
-                sS = msg.substr(msg.rfind("S:") + 2, msg.rfind("END"));
-                int x, y, s;
-                try
-                {
-                    x = std::stoi(xS);
-                    y = std::stoi(yS);
-                    s = std::stoi(sS);
-                    if(x == -1 && y == -1)
-                        canvas = eraserColor;
-                    else
-                        cv::circle(canvas, Point(x, y), s, brushColor, FILLED);
-                }catch(std::invalid_argument& e)
-                {
-                    std::cout << e.what() << std::endl;
-                }
-
-            }
-        }catch(UniSocketException& e)
-        {
-            if(e.getErrorType() != UniSocketException::TIMED_OUT)
-            {
-                std::cout << e << std::endl;
-                sock.close();
-                UniSocket::cleanup();
-                exit(1);
-            }
-        }
-
 
     }
 }
