@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>992</width>
-    <height>645</height>
+    <width>1082</width>
+    <height>717</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -19,8 +19,8 @@
      <rect>
       <x>0</x>
       <y>0</y>
-      <width>781</width>
-      <height>581</height>
+      <width>941</width>
+      <height>661</height>
      </rect>
     </property>
     <property name="text">
@@ -30,7 +30,7 @@
    <widget class="QPushButton" name="sample_btn">
     <property name="geometry">
      <rect>
-      <x>840</x>
+      <x>950</x>
       <y>50</y>
       <width>111</width>
       <height>41</height>
@@ -46,7 +46,7 @@
     </property>
     <property name="geometry">
      <rect>
-      <x>840</x>
+      <x>950</x>
       <y>100</y>
       <width>111</width>
       <height>41</height>
@@ -59,7 +59,7 @@
    <widget class="QPushButton" name="calibrate_bg_btn">
     <property name="geometry">
      <rect>
-      <x>840</x>
+      <x>950</x>
       <y>150</y>
       <width>111</width>
       <height>41</height>
@@ -72,7 +72,7 @@
    <widget class="QPushButton" name="reset_canvas_btn">
     <property name="geometry">
      <rect>
-      <x>840</x>
+      <x>950</x>
       <y>200</y>
       <width>111</width>
       <height>41</height>
@@ -85,7 +85,7 @@
    <widget class="QPushButton" name="flip_btn">
     <property name="geometry">
      <rect>
-      <x>840</x>
+      <x>950</x>
       <y>250</y>
       <width>111</width>
       <height>41</height>

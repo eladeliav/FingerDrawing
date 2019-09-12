@@ -41,7 +41,7 @@ private:
     Ui::MainWindow *ui;
     DrawingCam* cam;
     bool shouldFlip = true;
-    void keyPressEvent(QKeyEvent* event);
+    void keyPressEvent(QKeyEvent* event) override;
 };
 
 #endif // MAINWINDOW_H

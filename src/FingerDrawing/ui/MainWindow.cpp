@@ -20,6 +20,10 @@ MainWindow::~MainWindow()
 void MainWindow::mainLoop()
 {
     Mat current;
+    current = this->cam->getNextFrame(this->shouldFlip);
+    this->ui->img_label->setPixmap(QPixmap::fromImage(QImage(current.data, current.cols, current.rows, current.step, QImage::Format_RGB888)));
+    this->ui->img_label->setScaledContents( true );
+    this->ui->img_label->setSizePolicy( QSizePolicy::Ignored, QSizePolicy::Ignored );
     for(;;)
     {
         current = this->cam->getNextFrame(this->shouldFlip);
