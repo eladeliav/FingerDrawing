@@ -1,0 +1,2 @@
+add_subdirectory(FingerDrawing)
+add_subdirectory(FingerDrawingServer)

@@ -65,9 +65,6 @@ vector<Point> FingersDetector::countFingers(const Mat &frame, vector<Mat *> outp
         if(start.y > far.y && end.y > far.y)
             continue;
 
-        if(far.y > handCenter.y)
-            continue;
-
         if (angle <= M_PI / 2)
         {
             if (!Helpers::closePointExists(fingerPoints, start, CLOSE_POINTS_THRESHOLD))
@@ -118,7 +115,7 @@ vector<Point> FingersDetector::countFingers(const Mat &frame, vector<Mat *> outp
 
 vector<vector<Point>> FingersDetector::getContours(const Mat &mask, vector<Vec4i> &hierarchy, int &maxIndex)
 {
-    Mat thresh = threshImage(mask);
+    Mat thresh = mask; //threshImage(mask);
     if (thresh.empty() || thresh.channels() != 1)
     {
         maxIndex = -1;
@@ -131,7 +128,7 @@ vector<vector<Point>> FingersDetector::getContours(const Mat &mask, vector<Vec4i
     maxIndex = -1;
     double maxArea = 0;
 
-    for (int i = 0; i < contours.size(); i++)
+    for (size_t i = 0; i < contours.size(); i++)
     {
         double area = contourArea(contours[i], false);
         if (area > maxArea)

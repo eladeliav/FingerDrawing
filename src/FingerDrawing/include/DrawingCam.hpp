@@ -7,27 +7,21 @@
 
 #include <iostream>
 #include <opencv2/opencv.hpp>
+#include <UniSockets/Core.hpp>
 #include "FingersDetector.hpp"
 #include "ForegroundExtractor.hpp"
+#include "SkinDetector.hpp"
 #include "FacesRemover.hpp"
 #include <vector>
+#include <thread>
+#include <string>
 
 #define WINDOW_NAME "Frame"
 #define OFFSET 60
 
 using std::vector;
-
-void mouseCallBack(int event, int x, int y, int flags, void *userdata);
-
-struct FrameAndValues
-{
-    FrameAndValues(Mat *frame, Scalar *lower, Scalar *upper) : frame(frame), lower(lower), upper(upper)
-    {}
-
-    cv::Mat* frame;
-    Scalar* lower;
-    Scalar* upper;
-};
+using std::thread;
+using std::string;
 
 class DrawingCam
 {
@@ -36,7 +30,7 @@ private:
     cv::VideoCapture cam;
 
     Rect region_of_interest;
-    cv::Mat frame, canvas, foreground, hsv, roi;
+    cv::Mat frame, canvas, foreground, skinMask, roi;
 
     cv::Point currentPointerPos;
     cv::Scalar brushColor, eraserColor;
@@ -45,16 +39,20 @@ private:
     vector<cv::Point> fingerPoints;
 
     ForegroundExtractor foregroundExtractor;
+    SkinDetector skinDetector;
+
+    UniSocket sock;
 
     void draw();
 
-    Scalar lower = Scalar(0, 0, 0);
-    Scalar upper = Scalar(255, 255, 255);
+    void sendPoint(const Point& p);
+    void getPoints();
 
 public:
-    DrawingCam(int id = 0);
-
+    DrawingCam(int id = 0, string ip="127.0.0.1", int port=1234);
+    ~DrawingCam();
     void start();
+    Mat getNextFrame(char user_input);
 };
 
 #endif //FINGERDRAWING_DRAWINGCAM_HPP
