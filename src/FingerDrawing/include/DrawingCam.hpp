@@ -52,7 +52,11 @@ public:
     DrawingCam(int id = 0, string ip="127.0.0.1", int port=1234);
     ~DrawingCam();
     void start();
-    Mat getNextFrame(char user_input);
+    Mat getNextFrame(bool shouldFlip);
+    void sampleSkinColor();
+    void resetSkinColor();
+    void calibrateBackground();
+    void resetCanvas();
 };
 
 #endif //FINGERDRAWING_DRAWINGCAM_HPP

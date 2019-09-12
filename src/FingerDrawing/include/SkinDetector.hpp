@@ -24,12 +24,10 @@ private:
 
     int vLow = 0;
     int vHigh = 0;
-
-    bool sampled = false;
-
     Rect sampler1, sampler2;
 
 public:
+    bool sampled = false;
     explicit SkinDetector();
 
     void drawSampler(Mat frame);
@@ -40,7 +38,7 @@ public:
 
     void calcThresholds(Mat sample1, Mat sample2);
 
-    bool alreadySampled();
+    void resetThresholds();
 };
 
 #endif //FINGERDRAWING_SKINDETECTOR_HPP

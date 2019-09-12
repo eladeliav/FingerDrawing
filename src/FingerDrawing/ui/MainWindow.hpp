@@ -3,8 +3,10 @@
 
 #include <QMainWindow>
 #include <QApplication>
+#include <QKeyEvent>
 #include <string>
 #include <iostream>
+#include <thread>
 #include "include/DrawingCam.hpp"
 
 using std::string;
@@ -22,10 +24,24 @@ class MainWindow : public QMainWindow
 
 public:
     explicit MainWindow(QWidget *parent = nullptr);
-    ~MainWindow();
+    ~MainWindow() override;
     void mainLoop();
+private slots:
+    void on_sample_btn_clicked();
+
+    void on_reset_sample_btn_clicked();
+
+    void on_calibrate_bg_btn_clicked();
+
+    void on_reset_canvas_btn_clicked();
+
+    void on_flip_btn_clicked();
+
 private:
     Ui::MainWindow *ui;
+    DrawingCam* cam;
+    bool shouldFlip = true;
+    void keyPressEvent(QKeyEvent* event);
 };
 
 #endif // MAINWINDOW_H

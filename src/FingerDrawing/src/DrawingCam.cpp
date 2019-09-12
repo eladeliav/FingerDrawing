@@ -147,7 +147,7 @@ void DrawingCam::start()
 
         foreground = foregroundExtractor.extractForeground(roi);
 
-        if(!skinDetector.alreadySampled())
+        if(!skinDetector.sampled)
             skinDetector.drawSampler(roi);
         else
             skinMask = skinDetector.genMask(foreground);
@@ -208,10 +208,13 @@ DrawingCam::~DrawingCam()
     cam.release();
 }
 
-Mat DrawingCam::getNextFrame(char user_input)
+Mat DrawingCam::getNextFrame(bool shouldFlip)
 {
+    if(!cam.isOpened())
+        return Mat();
     cam >> frame;
-    flip(frame, frame, 1);
+    if(shouldFlip)
+        flip(frame, frame, 1);
     roi = frame(region_of_interest);
 
     rectangle(frame, region_of_interest, Scalar(255, 0, 0));
@@ -219,8 +222,12 @@ Mat DrawingCam::getNextFrame(char user_input)
 
     foreground = foregroundExtractor.extractForeground(roi);
 
-    if(!skinDetector.alreadySampled())
+    if(!skinDetector.sampled)
+    {
         skinDetector.drawSampler(roi);
+        skinMask = Mat(roi.size(), CV_8UC1);
+        skinMask = eraserColor;
+    }
     else
         skinMask = skinDetector.genMask(foreground);
 
@@ -240,22 +247,42 @@ Mat DrawingCam::getNextFrame(char user_input)
 //    imshow("canvas", displayCanvas);
 //    imshow("skin", skinMask);
 
-    if (user_input == '=' && brushSize < 25)
-        brushSize += 5;
-    else if (user_input == '-' && brushSize > 1)
-        brushSize -= 5;
-    else if (user_input == 'r')
-    {
-        canvas = eraserColor;
-        sendPoint(Point(-1, -1));
-    }
-    else if (user_input == 'e')
-        brushColor = eraserColor;
-    else if (user_input == 'b')
-        brushColor = cv::Scalar(250, 10, 10);
-    else if (user_input == 'c')
-        foregroundExtractor.calibrate(frame);
-    else if (user_input == 's')
-        skinDetector.sample(foreground);
+//    if (user_input == '=' && brushSize < 25)
+//        brushSize += 5;
+//    else if (user_input == '-' && brushSize > 1)
+//        brushSize -= 5;
+//    else if (user_input == 'r')
+//    {
+//        canvas = eraserColor;
+//        sendPoint(Point(-1, -1));
+//    }
+//    else if (user_input == 'e')
+//        brushColor = eraserColor;
+//    else if (user_input == 'b')
+//        brushColor = cv::Scalar(250, 10, 10);
+//    else if (user_input == 'c')
+//        foregroundExtractor.calibrate(frame);
+//    else if (user_input == 's')
+//        skinDetector.sample(foreground);
     return frame;
+}
+
+void DrawingCam::sampleSkinColor()
+{
+    skinDetector.sample(foreground);
+}
+
+void DrawingCam::resetSkinColor()
+{
+    skinDetector.resetThresholds();
+}
+
+void DrawingCam::calibrateBackground()
+{
+    foregroundExtractor.calibrate(roi);
+}
+
+void DrawingCam::resetCanvas()
+{
+    canvas = eraserColor;
 }
