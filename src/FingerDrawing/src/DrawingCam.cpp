@@ -208,7 +208,7 @@ DrawingCam::~DrawingCam()
     cam.release();
 }
 
-Mat DrawingCam::getNextFrame(bool shouldFlip)
+Mat DrawingCam::getNextFrame(bool shouldFlip, bool showDebug)
 {
     if(!cam.isOpened())
         return Mat();
@@ -243,27 +243,15 @@ Mat DrawingCam::getNextFrame(bool shouldFlip)
     putText(displayCanvas, sizeAndColor, Point(0, 50), FONT_HERSHEY_SIMPLEX, 2, Scalar(0, 0, 255, 255));
 
 //    cv::imshow(WINDOW_NAME, frame);
-//    imshow("Foreground", foreground);
-//    imshow("canvas", displayCanvas);
-//    imshow("skin", skinMask);
+    if(showDebug)
+    {
+        imshow("Foreground", foreground);
+        imshow("canvas", displayCanvas);
+        imshow("skin", skinMask);
+    }
+    else
+        destroyAllWindows();
 
-//    if (user_input == '=' && brushSize < 25)
-//        brushSize += 5;
-//    else if (user_input == '-' && brushSize > 1)
-//        brushSize -= 5;
-//    else if (user_input == 'r')
-//    {
-//        canvas = eraserColor;
-//        sendPoint(Point(-1, -1));
-//    }
-//    else if (user_input == 'e')
-//        brushColor = eraserColor;
-//    else if (user_input == 'b')
-//        brushColor = cv::Scalar(250, 10, 10);
-//    else if (user_input == 'c')
-//        foregroundExtractor.calibrate(frame);
-//    else if (user_input == 's')
-//        skinDetector.sample(foreground);
     return frame;
 }
 

@@ -12,7 +12,7 @@
 using std::vector;
 using namespace cv;
 
-#define FACE_CLASSIFIER_FILE_PATH "../Resources/haarcascade_frontalface_alt.xml"
+#define FACE_CLASSIFIER_FILE_PATH "haarcascade_frontalface_alt.xml"
 
 namespace FacesRemover
 {

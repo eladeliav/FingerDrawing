@@ -52,7 +52,7 @@ public:
     DrawingCam(int id = 0, string ip="127.0.0.1", int port=1234);
     ~DrawingCam();
     void start();
-    Mat getNextFrame(bool shouldFlip);
+    Mat getNextFrame(bool shouldFlip, bool showDebug);
     void sampleSkinColor();
     void resetSkinColor();
     void calibrateBackground();

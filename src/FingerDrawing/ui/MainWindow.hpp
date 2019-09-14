@@ -37,10 +37,13 @@ private slots:
 
     void on_flip_btn_clicked();
 
+    void on_show_debug_btn_clicked();
+
 private:
     Ui::MainWindow *ui;
     DrawingCam* cam;
     bool shouldFlip = true;
+    bool showDebug = false;
     void keyPressEvent(QKeyEvent* event) override;
 };
 

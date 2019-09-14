@@ -95,6 +95,19 @@
      <string>Flip</string>
     </property>
    </widget>
+   <widget class="QPushButton" name="show_debug_btn">
+    <property name="geometry">
+     <rect>
+      <x>950</x>
+      <y>300</y>
+      <width>111</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Show Debug</string>
+    </property>
+   </widget>
   </widget>
  </widget>
  <resources/>
