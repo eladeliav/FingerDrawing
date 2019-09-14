@@ -1,10 +1,11 @@
 //
 // Created by elade on 9/4/2019.
 //
-
+#define _USE_MATH_DEFINES
+#include <cmath>
 #include "../include/FingersDetector.hpp"
 #include <iostream>
-#include <math.h>
+
 
 vector<Point> FingersDetector::countFingers(const Mat &frame, vector<Mat *> outputFrames)
 {
