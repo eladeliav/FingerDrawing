@@ -63,9 +63,23 @@ DrawingCam::DrawingCam(int id, string ip, int port)
     foregroundExtractor = ForegroundExtractor();
     skinDetector = SkinDetector();
 
-    sock = UniSocket(ip, port);
-    thread getPointsThread(&DrawingCam::getPoints, this);
-    getPointsThread.detach();
+    try
+    {
+        sock = UniSocket(ip, port);
+        if(sock.valid())
+            connected = true;
+    }catch(UniSocketException& e)
+    {
+        std::cout << e << std::endl;
+        std::cout << "Staying in offline mode" << std::endl;
+    }
+
+    if(connected)
+    {
+        thread getPointsThread(&DrawingCam::getPoints, this);
+        getPointsThread.detach();
+    }
+
 
     canvas = cv::Mat(roi.size(), CV_8UC3);
     skinMask = cv::Mat(roi.size(), CV_8UC3);
@@ -175,7 +189,8 @@ void DrawingCam::start()
         else if (user_input == 'r')
         {
             canvas = eraserColor;
-            sendPoint(Point(-1, -1));
+            if(connected)
+                sendPoint(Point(-1, -1));
         }
         else if (user_input == 'e')
             brushColor = eraserColor;
@@ -196,7 +211,8 @@ void DrawingCam::draw()
         if (!Helpers::closePointExists(frame, currentPointerPos, 5))
         {
             cv::circle(canvas, currentPointerPos, brushSize, brushColor, FILLED);
-            sendPoint(currentPointerPos);
+            if(connected)
+                sendPoint(currentPointerPos);
         }
 
     }
@@ -243,14 +259,14 @@ Mat DrawingCam::getNextFrame(bool shouldFlip, bool showDebug)
     putText(displayCanvas, sizeAndColor, Point(0, 50), FONT_HERSHEY_SIMPLEX, 2, Scalar(0, 0, 255, 255));
 
 //    cv::imshow(WINDOW_NAME, frame);
-    if(showDebug)
-    {
-        imshow("Foreground", foreground);
-        imshow("canvas", displayCanvas);
-        imshow("skin", skinMask);
-    }
-    else
-        destroyAllWindows();
+//    if(showDebug)
+//    {
+//        imshow("Foreground", foreground);
+//        imshow("canvas", displayCanvas);
+//        imshow("skin", skinMask);
+//    }
+//    else
+//        destroyAllWindows();
 
     return frame;
 }
@@ -273,5 +289,6 @@ void DrawingCam::calibrateBackground()
 void DrawingCam::resetCanvas()
 {
     canvas = eraserColor;
-    sendPoint(Point(-1, -1));
+    if(connected)
+        sendPoint(Point(-1, -1));
 }

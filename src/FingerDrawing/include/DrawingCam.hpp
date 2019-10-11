@@ -42,6 +42,7 @@ private:
     SkinDetector skinDetector;
 
     UniSocket sock;
+    bool connected = false;
 
     void draw();
 
