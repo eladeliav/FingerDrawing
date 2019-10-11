@@ -39,7 +39,9 @@ private slots:
 
     void on_show_debug_btn_clicked();
 
-    void on_Connect_clicked();
+    void on_disconnect_btn_clicked();
+
+    void on_connect_btn_clicked();
 
 private:
     Ui::MainWindow *ui;

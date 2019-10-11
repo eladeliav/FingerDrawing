@@ -87,7 +87,7 @@ void DrawingCam::sendPoint(const Point& p)
 void DrawingCam::getPoints()
 {
     static char buffer[DEFAULT_BUFFER_LEN] = {0};
-    while(sock.valid())
+    while(sock.valid() && connected)
     {
         try
         {
@@ -275,7 +275,7 @@ void DrawingCam::resetCanvas()
         sendPoint(Point(-1, -1));
 }
 
-void DrawingCam::tryConnect(string ip, int port)
+bool DrawingCam::tryConnect(string ip, int port)
 {
     try
     {
@@ -293,4 +293,11 @@ void DrawingCam::tryConnect(string ip, int port)
         thread getPointsThread(&DrawingCam::getPoints, this);
         getPointsThread.detach();
     }
+    return connected;
+}
+
+void DrawingCam::disconnect()
+{
+    connected = false;
+    sock.close();
 }

@@ -32,6 +32,7 @@ void MainWindow::mainLoop()
         cvtColor(current, current, COLOR_BGR2RGB);
         this->ui->img_label->setPixmap(QPixmap::fromImage(QImage(current.data, current.cols, current.rows, current.step, QImage::Format_RGB888)));
     }
+    UniSocket::cleanup();
 }
 
 void MainWindow::on_sample_btn_clicked()
@@ -85,12 +86,26 @@ void MainWindow::on_show_debug_btn_clicked()
     this->showDebug = !this->showDebug;
 }
 
-void MainWindow::on_Connect_clicked()
+
+void MainWindow::on_connect_btn_clicked()
 {
     string ip = this->ui->ip_input->text().toStdString();
     int port = this->ui->port_input->text().toInt();
-    if(port != 0)
-        this->cam->tryConnect(ip, port);
-    else
+    if(port == 0)
+    {
         std::cout << "Invalid Port" << std::endl;
+        return;
+    }
+    if(this->cam->tryConnect(ip, port))
+    {
+        this->ui->connect_btn->setEnabled(false);
+        this->ui->disconnect_btn->setEnabled(true);
+    }
+}
+
+void MainWindow::on_disconnect_btn_clicked()
+{
+    this->cam->disconnect();
+    this->ui->connect_btn->setEnabled(true);
+    this->ui->disconnect_btn->setEnabled(false);
 }
