@@ -84,3 +84,13 @@ void MainWindow::on_show_debug_btn_clicked()
 {
     this->showDebug = !this->showDebug;
 }
+
+void MainWindow::on_Connect_clicked()
+{
+    string ip = this->ui->ip_input->text().toStdString();
+    int port = this->ui->port_input->text().toInt();
+    if(port != 0)
+        this->cam->tryConnect(ip, port);
+    else
+        std::cout << "Invalid Port" << std::endl;
+}

@@ -58,6 +58,7 @@ public:
     void resetSkinColor();
     void calibrateBackground();
     void resetCanvas();
+    void tryConnect(string ip="127.0.0.1", int port=1234);
 };
 
 #endif //FINGERDRAWING_DRAWINGCAM_HPP

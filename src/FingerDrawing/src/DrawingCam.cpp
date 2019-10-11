@@ -63,24 +63,6 @@ DrawingCam::DrawingCam(int id, string ip, int port)
     foregroundExtractor = ForegroundExtractor();
     skinDetector = SkinDetector();
 
-    try
-    {
-        sock = UniSocket(ip, port);
-        if(sock.valid())
-            connected = true;
-    }catch(UniSocketException& e)
-    {
-        std::cout << e << std::endl;
-        std::cout << "Staying in offline mode" << std::endl;
-    }
-
-    if(connected)
-    {
-        thread getPointsThread(&DrawingCam::getPoints, this);
-        getPointsThread.detach();
-    }
-
-
     canvas = cv::Mat(roi.size(), CV_8UC3);
     skinMask = cv::Mat(roi.size(), CV_8UC3);
     skinMask = eraserColor;
@@ -291,4 +273,24 @@ void DrawingCam::resetCanvas()
     canvas = eraserColor;
     if(connected)
         sendPoint(Point(-1, -1));
+}
+
+void DrawingCam::tryConnect(string ip, int port)
+{
+    try
+    {
+        sock = UniSocket(ip, port);
+        if(sock.valid())
+            connected = true;
+    }catch(UniSocketException& e)
+    {
+        std::cout << e << std::endl;
+        std::cout << "Staying in offline mode" << std::endl;
+    }
+
+    if(connected)
+    {
+        thread getPointsThread(&DrawingCam::getPoints, this);
+        getPointsThread.detach();
+    }
 }

@@ -39,6 +39,8 @@ private slots:
 
     void on_show_debug_btn_clicked();
 
+    void on_Connect_clicked();
+
 private:
     Ui::MainWindow *ui;
     DrawingCam* cam;
