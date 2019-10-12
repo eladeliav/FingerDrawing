@@ -17,7 +17,6 @@
 #include <string>
 
 #define WINDOW_NAME "Frame"
-#define OFFSET 60
 
 using std::vector;
 using std::thread;
@@ -53,7 +52,7 @@ public:
     DrawingCam(int id = 0, string ip="127.0.0.1", int port=1234);
     ~DrawingCam();
     void start();
-    Mat getNextFrame(bool shouldFlip, bool showDebug);
+    Mat getNextFrame(bool shouldFlip, Mat debugFrames[]);
     void sampleSkinColor();
     void resetSkinColor();
     void calibrateBackground();

@@ -7,12 +7,40 @@
 #include <string>
 #include <iostream>
 #include <thread>
+#include <QtWidgets/QLabel>
 #include "include/DrawingCam.hpp"
 
 using std::string;
 
 #define DEF_IP "172.16.1.127"
 #define DEFAULT_PORT 1234
+
+struct DebugWindows
+{
+    DebugWindows(QWidget *foregroundWindow, QWidget *skinWindow) : foregroundWindow(foregroundWindow),
+                                                                   skinWindow(skinWindow)
+    {
+        foregroundLabel = new QLabel(foregroundWindow);
+        skinLabel = new QLabel(skinWindow);
+        foregroundLabel->setScaledContents( true );
+        foregroundLabel->setSizePolicy( QSizePolicy::Ignored, QSizePolicy::Ignored );
+        skinLabel->setScaledContents( true );
+        skinLabel->setSizePolicy( QSizePolicy::Ignored, QSizePolicy::Ignored );
+    }
+
+    ~DebugWindows()
+    {
+        delete foregroundLabel;
+        delete skinLabel;
+        delete foregroundWindow;
+        delete skinWindow;
+    }
+
+    QWidget* foregroundWindow;
+    QLabel* foregroundLabel;
+    QWidget* skinWindow;
+    QLabel* skinLabel;
+};
 
 namespace Ui {
 class MainWindow;
@@ -46,6 +74,7 @@ private slots:
 private:
     Ui::MainWindow *ui;
     DrawingCam* cam;
+    DebugWindows* debugWindows;
     bool shouldFlip = true;
     bool showDebug = false;
     void keyPressEvent(QKeyEvent* event) override;

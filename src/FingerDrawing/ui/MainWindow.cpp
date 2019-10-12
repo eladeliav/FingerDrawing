@@ -7,6 +7,8 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
     cam = new DrawingCam(0, DEF_IP, DEFAULT_PORT);
+    this->debugWindows = new DebugWindows(new QWidget, new QWidget);
+
     std::thread mainLoopThread(&MainWindow::mainLoop, this);
     mainLoopThread.detach();
 }
@@ -15,22 +17,32 @@ MainWindow::~MainWindow()
 {
     delete ui;
     delete cam;
+    delete debugWindows;
 }
 
 void MainWindow::mainLoop()
 {
-    Mat current;
-    current = this->cam->getNextFrame(this->shouldFlip, showDebug);
-    this->ui->img_label->setPixmap(QPixmap::fromImage(QImage(current.data, current.cols, current.rows, current.step, QImage::Format_RGB888)));
+    Mat current, foreground, skinMask;
+    Mat debugFrames[2];
+    current = this->cam->getNextFrame(this->shouldFlip, debugFrames);
     this->ui->img_label->setScaledContents( true );
     this->ui->img_label->setSizePolicy( QSizePolicy::Ignored, QSizePolicy::Ignored );
     for(;;)
     {
-        current = this->cam->getNextFrame(this->shouldFlip, showDebug);
+        current = this->cam->getNextFrame(this->shouldFlip, debugFrames);
+        foreground = debugFrames[0];
+        skinMask = debugFrames[1];
+
         if(current.empty())
             break;
-        cvtColor(current, current, COLOR_BGR2RGB);
+
+        cvtColor(current, current,COLOR_BGR2RGB);
+        cvtColor(foreground, foreground,COLOR_BGR2RGB);
+        cvtColor(skinMask, skinMask, COLOR_BGR2RGB);
+
         this->ui->img_label->setPixmap(QPixmap::fromImage(QImage(current.data, current.cols, current.rows, current.step, QImage::Format_RGB888)));
+        this->debugWindows->foregroundLabel->setPixmap(QPixmap::fromImage(QImage(foreground.data, foreground.cols, foreground.rows, foreground.step, QImage::Format_RGB888)));
+        this->debugWindows->skinLabel->setPixmap(QPixmap::fromImage(QImage(skinMask.data, skinMask.cols, skinMask.rows, skinMask.step, QImage::Format_RGB888)));
     }
     UniSocket::cleanup();
 }
@@ -84,6 +96,10 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
 void MainWindow::on_show_debug_btn_clicked()
 {
     this->showDebug = !this->showDebug;
+    //this->debugWindows->foregroundWindow->setVisible(!this->debugWindows->foregroundWindow->isVisible());
+    //this->debugWindows->skinWindow->setVisible(!this->debugWindows->skinWindow->isVisible());
+    this->ui->testwidget->show();
+    this->ui->testwidget->setEnabled(true);
 }
 
 

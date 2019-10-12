@@ -206,7 +206,7 @@ DrawingCam::~DrawingCam()
     cam.release();
 }
 
-Mat DrawingCam::getNextFrame(bool shouldFlip, bool showDebug)
+Mat DrawingCam::getNextFrame(bool shouldFlip, Mat debugFrames[])
 {
     if(!cam.isOpened())
         return Mat();
@@ -240,6 +240,8 @@ Mat DrawingCam::getNextFrame(bool shouldFlip, bool showDebug)
     std::string sizeAndColor = "Size: " + std::to_string(brushSize);
     putText(displayCanvas, sizeAndColor, Point(0, 50), FONT_HERSHEY_SIMPLEX, 2, Scalar(0, 0, 255, 255));
 
+    debugFrames[0] = Mat(foreground);
+    debugFrames[1] = Mat(skinMask);
 //    cv::imshow(WINDOW_NAME, frame);
 //    if(showDebug)
 //    {

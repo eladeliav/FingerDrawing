@@ -183,6 +183,19 @@
      <string>Disconnect</string>
     </property>
    </widget>
+   <widget class="QWidget" name="testwidget" native="true">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>810</x>
+      <y>570</y>
+      <width>120</width>
+      <height>80</height>
+     </rect>
+    </property>
+   </widget>
   </widget>
  </widget>
  <resources/>
