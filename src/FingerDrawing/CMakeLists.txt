@@ -31,7 +31,7 @@ set(SOURCES
         ui/mainwindow.ui
         )
 
-configure_file("../../Resources/haarcascade_frontalface_alt.xml" ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COPYONLY)
+configure_file("../../Resources/haarcascade_frontalface_alt.xml" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/haarcascade_frontalface_alt.xml" COPYONLY)
 
 add_executable(${TARGET_NAME} ${SOURCES})
 target_include_directories(${TARGET_NAME} PUBLIC ${OpenCV_INCLUDE_DIRS} ${UniSockets_INCLUDE_DIRS} ${Qt5Widgets_INCLUDE_DIRS})
