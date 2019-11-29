@@ -44,8 +44,8 @@ DrawingCam::DrawingCam(int id, string ip, int port)
 
     currentPointerPos = cv::Point(0, 0);
 
-    eraserColor = cv::Scalar(0, 0, 0);
-    brushColor = cv::Scalar(250, 10, 10);
+    eraserColor = ERASER_SCALAR;
+    brushColor = BLUE_SCALAR;
 
     cam = cv::VideoCapture(cam_id);
 
@@ -74,7 +74,7 @@ void DrawingCam::sendPoint(const Point& p)
 {
     if(sock.valid())
     {
-        string msg = "X:" + std::to_string(p.x) + "Y:" + std::to_string(p.y) + "S:" + std::to_string(brushSize) + "END";
+        string msg = "X:" + std::to_string(p.x) + "Y:" + std::to_string(p.y) + "S:" + std::to_string(brushSize) + "C:" + COLOR_TO_STRING.at(currentColor) + "END";
         std::cout << "about to send point: " << msg << std::endl;
         sock.send(msg);
     }
@@ -94,17 +94,23 @@ void DrawingCam::getPoints()
             int bytesReceived = sock.recv(buffer);
             if(bytesReceived > 0)
             {
-                string xS, yS, sS;
+                string xS, yS, sS, cS;
                 string msg = buffer;
                 xS = msg.substr(msg.find("X:") + 2, msg.find("Y:"));
                 yS = msg.substr(msg.find("Y:") + 2, msg.rfind("S:"));
-                sS = msg.substr(msg.rfind("S:") + 2, msg.rfind("END"));
+                sS = msg.substr(msg.rfind("S:") + 2, msg.rfind("C:"));
+                cS = msg.substr(msg.rfind("C:") + 2, msg.rfind("END"));
                 int x, y, s;
                 try
                 {
                     x = std::stoi(xS);
                     y = std::stoi(yS);
                     s = std::stoi(sS);
+                    Color newColor = currentColor;
+                    for(auto it : COLOR_TO_STRING)
+                        if(it.second == cS)
+                            newColor = it.first;
+                    this->brushColor = COLOR_TO_SCALAR.at(newColor);
                     if(x == -1 && y == -1)
                         canvas = eraserColor;
                     else
@@ -235,7 +241,11 @@ Mat DrawingCam::getNextFrame(bool shouldFlip, Mat debugFrames[])
     fingerPoints = FingersDetector::countFingers(skinMask, vector<Mat *>{&displayCanvas, &roi});
 
     draw();
-    overlayImage(&roi, &canvas);
+    //overlayImage(&roi, &canvas);
+    //addWeighted(roi, 1, canvas, 1, 0, roi);
+    Mat transparent;
+    cv::inRange(canvas, ERASER_SCALAR, ERASER_SCALAR, transparent);
+    canvas.copyTo(roi, 255 - transparent);
 
     std::string sizeAndColor = "Size: " + std::to_string(brushSize);
     putText(displayCanvas, sizeAndColor, Point(0, 50), FONT_HERSHEY_SIMPLEX, 2, Scalar(0, 0, 255, 255));
@@ -302,4 +312,10 @@ void DrawingCam::disconnect()
 {
     connected = false;
     sock.close();
+}
+
+void DrawingCam::setColor(Color color)
+{
+    this->brushColor = COLOR_TO_SCALAR.at(color);
+    currentColor = color;
 }

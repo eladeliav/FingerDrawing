@@ -15,12 +15,40 @@
 #include <vector>
 #include <thread>
 #include <string>
+#include <map>
 
 #define WINDOW_NAME "Frame"
 
 using std::vector;
 using std::thread;
 using std::string;
+
+const cv::Scalar RED_SCALAR = cv::Scalar(0, 0, 255);
+const cv::Scalar GREEN_SCALAR = cv::Scalar(0, 255, 0);
+const cv::Scalar BLUE_SCALAR = cv::Scalar(255, 0, 0);
+const cv::Scalar ERASER_SCALAR = cv::Scalar(0, 0, 0);
+
+enum Color
+{
+    RED,
+    BLUE,
+    GREEN,
+    ERASER
+};
+
+const std::map<Color, cv::Scalar> COLOR_TO_SCALAR = {
+        {RED, RED_SCALAR},
+        {BLUE, BLUE_SCALAR},
+        {GREEN, GREEN_SCALAR},
+        {ERASER, ERASER_SCALAR}
+};
+
+const std::map<Color, std::string> COLOR_TO_STRING = {
+        {RED, "RED"},
+        {BLUE, "BLUE"},
+        {GREEN, "GREEN"},
+        {ERASER, "ERASER"}
+};
 
 class DrawingCam
 {
@@ -33,6 +61,7 @@ private:
 
     cv::Point currentPointerPos;
     cv::Scalar brushColor, eraserColor;
+    Color currentColor = BLUE;
     int brushSize;
 
     vector<cv::Point> fingerPoints;
@@ -57,6 +86,7 @@ public:
     void resetSkinColor();
     void calibrateBackground();
     void resetCanvas();
+    void setColor(Color color);
     bool tryConnect(string ip="127.0.0.1", int port=1234);
     void disconnect();
 };

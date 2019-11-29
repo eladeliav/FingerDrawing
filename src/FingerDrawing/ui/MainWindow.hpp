@@ -8,6 +8,7 @@
 #include <iostream>
 #include <thread>
 #include <QtWidgets/QLabel>
+#include <QButtonGroup>
 #include "include/DrawingCam.hpp"
 
 using std::string;
@@ -71,6 +72,14 @@ private slots:
 
     void on_connect_btn_clicked();
 
+    void on_ared_radio_clicked();
+
+    void on_bblue_radio_clicked();
+
+    void on_cgreen_radio_clicked();
+
+    void on_deraser_radio_clicked();
+
 private:
     Ui::MainWindow *ui;
     DrawingCam* cam;
@@ -78,6 +87,7 @@ private:
     bool shouldFlip = true;
     bool showDebug = false;
     void keyPressEvent(QKeyEvent* event) override;
+    void setRadio(int index);
 };
 
 #endif // MAINWINDOW_H

@@ -27,6 +27,10 @@ void MainWindow::mainLoop()
     current = this->cam->getNextFrame(this->shouldFlip, debugFrames);
     this->ui->img_label->setScaledContents( true );
     this->ui->img_label->setSizePolicy( QSizePolicy::Ignored, QSizePolicy::Ignored );
+    this->debugWindows->foregroundLabel->setScaledContents( true );
+    this->debugWindows->foregroundLabel->setSizePolicy( QSizePolicy::Ignored, QSizePolicy::Ignored );
+    this->debugWindows->skinLabel->setScaledContents( true );
+    this->debugWindows->skinLabel->setSizePolicy( QSizePolicy::Ignored, QSizePolicy::Ignored );
     for(;;)
     {
         current = this->cam->getNextFrame(this->shouldFlip, debugFrames);
@@ -87,6 +91,14 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
         this->on_sample_btn_clicked();
     else if(event->key() == Qt::Key_X)
         this->on_reset_sample_btn_clicked();
+    else if(event->key() == Qt::Key_1)
+        this->on_ared_radio_clicked();
+    else if(event->key() == Qt::Key_2)
+        this->on_bblue_radio_clicked();
+    else if(event->key() == Qt::Key_3)
+        this->on_cgreen_radio_clicked();
+    else if(event->key() == Qt::Key_4)
+        this->on_deraser_radio_clicked();
     else if(event->key() == Qt::Key_Escape)
         QCoreApplication::exit(0);
 
@@ -96,10 +108,8 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
 void MainWindow::on_show_debug_btn_clicked()
 {
     this->showDebug = !this->showDebug;
-    //this->debugWindows->foregroundWindow->setVisible(!this->debugWindows->foregroundWindow->isVisible());
-    //this->debugWindows->skinWindow->setVisible(!this->debugWindows->skinWindow->isVisible());
-    this->ui->testwidget->show();
-    this->ui->testwidget->setEnabled(true);
+    this->debugWindows->foregroundWindow->setVisible(!this->debugWindows->foregroundWindow->isVisible());
+    this->debugWindows->skinWindow->setVisible(!this->debugWindows->skinWindow->isVisible());
 }
 
 
@@ -124,4 +134,34 @@ void MainWindow::on_disconnect_btn_clicked()
     this->cam->disconnect();
     this->ui->connect_btn->setEnabled(true);
     this->ui->disconnect_btn->setEnabled(false);
+}
+
+void MainWindow::setRadio(int index)
+{
+    const auto checkList = this->ui->color_box->findChildren<QRadioButton*>();
+    checkList[index]->setChecked(true);
+}
+
+void MainWindow::on_ared_radio_clicked()
+{
+    setRadio(0);
+    this->cam->setColor(RED);
+}
+
+void MainWindow::on_bblue_radio_clicked()
+{
+    setRadio(1);
+    this->cam->setColor(GREEN);
+}
+
+void MainWindow::on_cgreen_radio_clicked()
+{
+    setRadio(2);
+    this->cam->setColor(BLUE);
+}
+
+void MainWindow::on_deraser_radio_clicked()
+{
+    setRadio(3);
+    this->cam->setColor(ERASER);
 }
