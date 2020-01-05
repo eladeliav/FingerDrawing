@@ -222,6 +222,14 @@ Mat DrawingCam::getNextFrame(bool shouldFlip, Mat debugFrames[])
     roi = frame(region_of_interest);
 
     rectangle(frame, region_of_interest, Scalar(255, 0, 0));
+
+    int y = 40;
+    for(const auto& s : textToShow)
+    {
+        putText(frame, s, Point(0, y),
+                FONT_HERSHEY_SIMPLEX, 1, Scalar(0, 0, 255, 255));
+        y += 30;
+    }
     Mat displayCanvas;
 
     foreground = foregroundExtractor.extractForeground(roi);
@@ -243,23 +251,28 @@ Mat DrawingCam::getNextFrame(bool shouldFlip, Mat debugFrames[])
     if(drawingMode)
     {
         draw();
-        //overlayImage(&roi, &canvas);
-        //addWeighted(roi, 1, canvas, 1, 0, roi);
         Mat transparent;
         cv::inRange(canvas, ERASER_SCALAR, ERASER_SCALAR, transparent);
         canvas.copyTo(roi, 255 - transparent);
     }
-    else
+    else if(finishedCountdown)
     {
         int fingerNum = fingerPoints.size();
-        HandShape shape = INVALID;
+        HandShape shape = ROCK;
         if(fingerNum == 0)
+        {
             shape = ROCK;
-        else if(fingerNum == 2)
-            shape = SCISSORS;
-        else if(fingerNum == 1)
+        }else if(fingerNum == 1)
+        {
             shape = PAPER;
-        std::cout << "DETECTED GESTURE: " << SHAPE_TO_STRING.at(shape) << std::endl;
+        }
+        else if(fingerNum == 2)
+        {
+            shape = SCISSORS;
+        }
+        textToShow.push_back("The Shape you made is: " + SHAPE_TO_STRING.at(shape));
+        finishedCountdown = false;
+        drawingMode = true;
     }
 
 
@@ -297,6 +310,7 @@ void DrawingCam::calibrateBackground()
 void DrawingCam::resetCanvas()
 {
     canvas = eraserColor;
+    textToShow.clear();
     if(connected)
         sendPoint(Point(-1, -1));
 }
@@ -336,5 +350,22 @@ void DrawingCam::setColor(Color color)
 
 void DrawingCam::toggleMode()
 {
-    this->drawingMode = !this->drawingMode;
+    this->drawingMode = false;
+    resetCanvas();
+    textToShow.clear();
+    textToShow.push_back("Get Ready");
+    textToShow.push_back(std::to_string(countdown));
+    timer.setInterval([&]()
+    {
+        std::cout << "Countdown: " << countdown << std::endl;
+        textToShow.back() = std::to_string(countdown);
+        countdown--;
+        if(countdown == -1)
+        {
+            countdown = 5;
+            finishedCountdown = true;
+            textToShow.clear();
+            timer.stop();
+        }
+    }, 1000);
 }

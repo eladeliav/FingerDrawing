@@ -15,6 +15,7 @@
 #include <vector>
 #include <thread>
 #include <string>
+#include "timer.hpp"
 #include <map>
 
 #define WINDOW_NAME "Frame"
@@ -80,6 +81,7 @@ private:
     int brushSize;
 
     vector<cv::Point> fingerPoints;
+    vector<std::string> textToShow;
 
     ForegroundExtractor foregroundExtractor;
     SkinDetector skinDetector;
@@ -87,6 +89,9 @@ private:
     UniSocket sock;
     bool connected = false;
     bool drawingMode = true;
+    Timer timer = Timer();
+    int countdown = 5;
+    bool finishedCountdown = false;
 
     void draw();
 
