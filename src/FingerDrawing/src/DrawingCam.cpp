@@ -240,15 +240,29 @@ Mat DrawingCam::getNextFrame(bool shouldFlip, Mat debugFrames[])
     displayCanvas = canvas.clone();
     fingerPoints = FingersDetector::countFingers(skinMask, vector<Mat *>{&displayCanvas, &roi});
 
-    draw();
-    //overlayImage(&roi, &canvas);
-    //addWeighted(roi, 1, canvas, 1, 0, roi);
-    Mat transparent;
-    cv::inRange(canvas, ERASER_SCALAR, ERASER_SCALAR, transparent);
-    canvas.copyTo(roi, 255 - transparent);
+    if(drawingMode)
+    {
+        draw();
+        //overlayImage(&roi, &canvas);
+        //addWeighted(roi, 1, canvas, 1, 0, roi);
+        Mat transparent;
+        cv::inRange(canvas, ERASER_SCALAR, ERASER_SCALAR, transparent);
+        canvas.copyTo(roi, 255 - transparent);
+    }
+    else
+    {
+        int fingerNum = fingerPoints.size();
+        HandShape shape = INVALID;
+        if(fingerNum == 0)
+            shape = ROCK;
+        else if(fingerNum == 2)
+            shape = SCISSORS;
+        else if(fingerNum == 1)
+            shape = PAPER;
+        std::cout << "DETECTED GESTURE: " << SHAPE_TO_STRING.at(shape) << std::endl;
+    }
 
-    std::string sizeAndColor = "Size: " + std::to_string(brushSize);
-    putText(displayCanvas, sizeAndColor, Point(0, 50), FONT_HERSHEY_SIMPLEX, 2, Scalar(0, 0, 255, 255));
+
 
     debugFrames[0] = Mat(foreground);
     debugFrames[1] = Mat(skinMask);
@@ -318,4 +332,9 @@ void DrawingCam::setColor(Color color)
 {
     this->brushColor = COLOR_TO_SCALAR.at(color);
     currentColor = color;
+}
+
+void DrawingCam::toggleMode()
+{
+    this->drawingMode = !this->drawingMode;
 }

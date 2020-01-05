@@ -110,7 +110,7 @@ vector<Point> FingersDetector::countFingers(const Mat &frame, vector<Mat *> outp
                 FONT_HERSHEY_SIMPLEX, 2, Scalar(0, 0, 255, 255));
     }
 
-    std::cout << fingerPoints.size() << std::endl;
+    //std::cout << fingerPoints.size() << std::endl;
     return fingerPoints;
 }
 

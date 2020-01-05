@@ -101,6 +101,8 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
         this->on_deraser_radio_clicked();
     else if(event->key() == Qt::Key_Escape)
         QCoreApplication::exit(0);
+    else if(event->key() == Qt::Key_T)
+        this->cam->toggleMode();
 
 }
 

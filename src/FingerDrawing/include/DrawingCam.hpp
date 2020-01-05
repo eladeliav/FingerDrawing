@@ -36,6 +36,21 @@ enum Color
     ERASER
 };
 
+enum HandShape
+{
+    ROCK,
+    PAPER,
+    SCISSORS,
+    INVALID
+};
+
+const std::map<HandShape, std::string> SHAPE_TO_STRING = {
+        {ROCK, "Rock"},
+        {PAPER, "Paper"},
+        {SCISSORS, "Scissors"},
+        {INVALID, "Unknown hand shape"}
+};
+
 const std::map<Color, cv::Scalar> COLOR_TO_SCALAR = {
         {RED, RED_SCALAR},
         {BLUE, BLUE_SCALAR},
@@ -71,6 +86,7 @@ private:
 
     UniSocket sock;
     bool connected = false;
+    bool drawingMode = true;
 
     void draw();
 
@@ -89,6 +105,7 @@ public:
     void setColor(Color color);
     bool tryConnect(string ip="127.0.0.1", int port=1234);
     void disconnect();
+    void toggleMode();
 };
 
 #endif //FINGERDRAWING_DRAWINGCAM_HPP
