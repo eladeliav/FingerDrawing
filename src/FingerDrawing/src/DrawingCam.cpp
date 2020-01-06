@@ -89,6 +89,8 @@ void DrawingCam::getPoints()
     static char buffer[DEFAULT_BUFFER_LEN] = {0};
     while(sock.valid() && connected)
     {
+        if(!drawingMode)
+            continue;
         try
         {
             int bytesReceived = sock.recv(buffer);
@@ -96,6 +98,11 @@ void DrawingCam::getPoints()
             {
                 string xS, yS, sS, cS;
                 string msg = buffer;
+                if(msg == "TOGGLE")
+                {
+                    this->toggleMode();
+                    continue;
+                }
                 xS = msg.substr(msg.find("X:") + 2, msg.find("Y:"));
                 yS = msg.substr(msg.find("Y:") + 2, msg.rfind("S:"));
                 sS = msg.substr(msg.rfind("S:") + 2, msg.rfind("C:"));
@@ -271,6 +278,35 @@ Mat DrawingCam::getNextFrame(bool shouldFlip, Mat debugFrames[])
             shape = SCISSORS;
         }
         textToShow.push_back("The Shape you made is: " + SHAPE_TO_STRING.at(shape));
+        if(connected)
+        {
+            this->sock.send(SHAPE_TO_STRING.at(shape));
+            std::string otherShapeStr;
+            HandShape otherShape = ROCK;
+            char buf[1024]= {'\0'};
+            this->sock.recv(buf);
+            otherShapeStr = buf;
+            textToShow.push_back("Opponent played: " + otherShapeStr);
+            for(const auto& p : SHAPE_TO_STRING)
+            {
+                if(p.second == otherShapeStr)
+                    otherShape = p.first;
+            }
+            if(otherShape == ROCK && shape == PAPER)
+                textToShow.push_back("You Win!");
+            else if(otherShape == ROCK && shape == SCISSORS)
+                textToShow.push_back("You Lose!");
+            else if(otherShape == PAPER && shape == ROCK)
+                textToShow.push_back("You Lose!");
+            else if(otherShape == PAPER && shape == SCISSORS)
+                textToShow.push_back("You Win!");
+            else if(otherShape == SCISSORS && shape == ROCK)
+                textToShow.push_back("You Win!");
+            else if(otherShape == SCISSORS && shape == PAPER)
+                textToShow.push_back("You Lose!");
+            else
+                textToShow.push_back("Draw!");
+        }
         finishedCountdown = false;
         drawingMode = true;
     }
@@ -352,6 +388,8 @@ void DrawingCam::toggleMode()
 {
     this->drawingMode = false;
     resetCanvas();
+    if(connected)
+        this->sock.send("TOGGLE");
     textToShow.clear();
     textToShow.push_back("Get Ready");
     textToShow.push_back(std::to_string(countdown));
