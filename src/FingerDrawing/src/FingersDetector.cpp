@@ -75,7 +75,7 @@ vector<Point> FingersDetector::countFingers(const Mat &frame, vector<Mat *> outp
             allFingerPoints.push_back({start, end, far});
         } else if (angle <= M_PI && fingerPoints.empty())
         {
-            if(start.y > handCenter.y && end.y > handCenter.y)
+            if(far.y > handCenter.y)
                 continue;
             if(start.y < end.y)
             {
@@ -109,8 +109,6 @@ vector<Point> FingersDetector::countFingers(const Mat &frame, vector<Mat *> outp
         putText(*f, std::to_string(fingerPoints.size()), Point(handCenter.x, handCenter.y + CLOSE_POINTS_THRESHOLD),
                 FONT_HERSHEY_SIMPLEX, 2, Scalar(0, 0, 255, 255));
     }
-
-    //std::cout << fingerPoints.size() << std::endl;
     return fingerPoints;
 }
 

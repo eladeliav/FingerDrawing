@@ -12,10 +12,10 @@
 #include "ForegroundExtractor.hpp"
 #include "SkinDetector.hpp"
 #include "FacesRemover.hpp"
+#include "timer.hpp"
 #include <vector>
 #include <thread>
 #include <string>
-#include "timer.hpp"
 #include <map>
 
 #define WINDOW_NAME "Frame"
@@ -89,7 +89,7 @@ private:
     UniSocket sock;
     bool connected = false;
     bool drawingMode = true;
-    Timer timer = Timer();
+    Timer<DrawingCam> timer = Timer<DrawingCam>();
     int countdown = 5;
     bool finishedCountdown = false;
 
@@ -97,6 +97,7 @@ private:
 
     void sendPoint(const Point& p);
     void getPoints();
+    void rockPaperCountdown();
 
 public:
     DrawingCam(int id = 0, string ip="127.0.0.1", int port=1234);

@@ -393,17 +393,19 @@ void DrawingCam::toggleMode()
     textToShow.clear();
     textToShow.push_back("Get Ready");
     textToShow.push_back(std::to_string(countdown));
-    timer.setInterval([&]()
+    timer.setInterval(&DrawingCam::rockPaperCountdown, 1000, this);
+}
+
+void DrawingCam::rockPaperCountdown()
+{
+    std::cout << "Countdown: " << countdown << std::endl;
+    textToShow.back() = std::to_string(countdown);
+    countdown--;
+    if (countdown == -1)
     {
-        std::cout << "Countdown: " << countdown << std::endl;
-        textToShow.back() = std::to_string(countdown);
-        countdown--;
-        if(countdown == -1)
-        {
-            countdown = 5;
-            finishedCountdown = true;
-            textToShow.clear();
-            timer.stop();
-        }
-    }, 1000);
+        countdown = 5;
+        finishedCountdown = true;
+        textToShow.clear();
+        timer.stop();
+    }
 }
