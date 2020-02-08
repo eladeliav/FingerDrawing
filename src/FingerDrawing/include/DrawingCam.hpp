@@ -107,7 +107,7 @@ public:
     void sampleSkinColor();
     void resetSkinColor();
     void calibrateBackground();
-    void resetCanvas();
+    void resetCanvas(bool send=true);
     void setColor(Color color);
     bool tryConnect(string ip="127.0.0.1", int port=1234);
     void disconnect();

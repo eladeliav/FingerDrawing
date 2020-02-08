@@ -296,7 +296,7 @@ Mat DrawingCam::getNextFrame(bool shouldFlip, Mat debugFrames[])
             this->sock.send(SHAPE_TO_STRING.at(shape));
             std::string otherShapeStr;
             HandShape otherShape = ROCK;
-            char buf[1024]= {'\0'};
+            char buf[DEFAULT_BUFFER_LEN]= {'\0'};
             this->sock.recv(buf);
             otherShapeStr = buf;
             textToShow.push_back("Opponent played: " + otherShapeStr);
@@ -356,11 +356,11 @@ void DrawingCam::calibrateBackground()
     foregroundExtractor.calibrate(roi);
 }
 
-void DrawingCam::resetCanvas()
+void DrawingCam::resetCanvas(bool send)
 {
     canvas = eraserColor;
     textToShow.clear();
-    if(connected)
+    if(connected && send)
         sendPoint(Point(-1, -1));
 }
 
@@ -400,7 +400,7 @@ void DrawingCam::setColor(Color color)
 void DrawingCam::toggleMode()
 {
     this->drawingMode = false;
-    resetCanvas();
+    resetCanvas(false);
     if(connected)
         this->sock.send("TOGGLE");
     textToShow.clear();
