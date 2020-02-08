@@ -299,8 +299,15 @@ Mat DrawingCam::getNextFrame(bool shouldFlip, Mat debugFrames[])
             std::string otherShapeStr;
             HandShape otherShape = ROCK;
             char buf[DEFAULT_BUFFER_LEN]= {0};
-            this->sock.recv(buf);
-            otherShapeStr = buf;
+            try
+            {
+                this->sock.recv(buf);
+                otherShapeStr = buf;
+            }catch(UniSocketException& e)
+            {
+                std::cout << e << std::endl;
+                otherShapeStr = "Rock";
+            }
             textToShow.push_back("Opponent played: " + otherShapeStr);
             for(const auto& p : SHAPE_TO_STRING)
             {
