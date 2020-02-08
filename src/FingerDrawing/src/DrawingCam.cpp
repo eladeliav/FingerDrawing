@@ -99,6 +99,7 @@ void DrawingCam::getPoints()
     static char buffer[DEFAULT_BUFFER_LEN] = {0};
     while(sock.valid() && connected)
     {
+        memset(buffer, 0, sizeof(buffer));
         if(!drawingMode)
             continue;
         try
@@ -108,8 +109,9 @@ void DrawingCam::getPoints()
             {
                 string xS, yS, sS, cS;
                 string msg = buffer;
-                if(msg == "TOGGLE")
+                if(msg.find("TOGGLE") != std::string::npos)
                 {
+                    std::cout << "RECEIVED TOGGLE MSG" << std::endl;
                     this->toggleMode();
                     continue;
                 }
