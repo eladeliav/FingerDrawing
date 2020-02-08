@@ -112,7 +112,7 @@ void DrawingCam::getPoints()
                 if(msg.find("TOGGLE") != std::string::npos)
                 {
                     std::cout << "RECEIVED TOGGLE MSG" << std::endl;
-                    this->toggleMode();
+                    this->toggleMode(false);
                     continue;
                 }
                 xS = msg.substr(msg.find("X:") + 2, msg.find("Y:"));
