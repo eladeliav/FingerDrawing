@@ -278,6 +278,7 @@ Mat DrawingCam::getNextFrame(bool shouldFlip, Mat debugFrames[])
     else if(finishedCountdown)
     {
         int fingerNum = fingerPoints.size();
+        std::cout << "FingerNum: " << fingerNum << std::endl;
         HandShape shape = ROCK;
         if(fingerNum == 0)
         {
@@ -291,12 +292,13 @@ Mat DrawingCam::getNextFrame(bool shouldFlip, Mat debugFrames[])
             shape = SCISSORS;
         }
         textToShow.push_back("The Shape you made is: " + SHAPE_TO_STRING.at(shape));
+        std::cout << "STRING SHAPE: " << SHAPE_TO_STRING.at(shape) << std::endl;
         if(connected)
         {
             this->sock.send(SHAPE_TO_STRING.at(shape));
             std::string otherShapeStr;
             HandShape otherShape = ROCK;
-            char buf[DEFAULT_BUFFER_LEN]= {'\0'};
+            char buf[DEFAULT_BUFFER_LEN]= {0};
             this->sock.recv(buf);
             otherShapeStr = buf;
             textToShow.push_back("Opponent played: " + otherShapeStr);
