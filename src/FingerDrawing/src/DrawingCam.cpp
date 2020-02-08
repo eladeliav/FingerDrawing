@@ -100,7 +100,7 @@ void DrawingCam::getPoints()
     while(sock.valid() && connected)
     {
         memset(buffer, 0, sizeof(buffer));
-        if(!drawingMode)
+        if(!drawingMode || finishedCountdown)
             continue;
         try
         {
