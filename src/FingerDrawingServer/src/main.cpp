@@ -71,6 +71,7 @@ void handleSingClient(UniSocket &c, UniSocket &o, bool &exitFlag)
     char buf[DEFAULT_BUFFER_LEN] = {0};
     while (!exitFlag && c.valid() && o.valid())
     {
+        memset(buf, 0, sizeof(buf));
         try
         {
             int bytes = c.recv(buf);
