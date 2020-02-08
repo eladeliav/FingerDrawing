@@ -133,7 +133,8 @@ void handlePair(ClientPair pair, bool &exitFlag)
 //        }
 
     }
-    client.close();
+    pair.first.close();
+    pair.second.close();
 }
 
 int main(int argc, char **argv)
