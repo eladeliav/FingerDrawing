@@ -124,7 +124,7 @@ void MainWindow::on_connect_btn_clicked()
         std::cout << "Invalid Port" << std::endl;
         return;
     }
-    if(this->cam->tryConnect(ip, port))
+    if(this->cam->tryConnect())
     {
         this->ui->connect_btn->setEnabled(false);
         this->ui->disconnect_btn->setEnabled(true);
