@@ -76,7 +76,17 @@ void DrawingCam::sendPoint(const Point& p)
     {
         string msg = "X:" + std::to_string(p.x) + "Y:" + std::to_string(p.y) + "S:" + std::to_string(brushSize) + "C:" + COLOR_TO_STRING.at(currentColor) + "END";
         std::cout << "about to send point: " << msg << std::endl;
-        sock.send(msg);
+        try
+        {
+            sock.send(msg);
+        }
+        catch(UniSocketException& e)
+        {
+            std::cout << e << std::endl;
+            sock.close();
+            connected = false;
+        }
+
     }
     else
     {
@@ -134,8 +144,9 @@ void DrawingCam::getPoints()
             {
                 std::cout << e << std::endl;
                 sock.close();
-                UniSocket::cleanup();
-                exit(1);
+                connected = false;
+                //UniSocket::cleanup();
+                //exit(1);
             }
         }
 

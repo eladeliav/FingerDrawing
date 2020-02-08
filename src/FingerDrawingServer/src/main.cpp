@@ -66,52 +66,38 @@ void listenForClients(UniServerSocket &listenSock, bool &exitFlag)
     listenSock.close();
 }
 
-void handlePair(ClientPair pair, bool &exitFlag)
+void handleSingClient(UniSocket &c, UniSocket &o, bool &exitFlag)
 {
-    while (pair.first.valid() && pair.second.valid() && !exitFlag)
+    char buf[DEFAULT_BUFFER_LEN] = {0};
+    while (!exitFlag && c.valid() && o.valid())
     {
-        std::thread firstC([=]()
-        {
-            char buf[DEFAULT_BUFFER_LEN] = {0};
-            try
-            {
-                int bytesReceived = pair.first.recv(buf);
-                if(bytesReceived > 0)
-                {
-                    string msg = buf;
-                    //LOG()
-                    pair.second.send(msg);
-                }
-            }
-            catch(UniSocketException& e)
-            {
-                if(e.getErrorType() != UniSocketException::TIMED_OUT)
-                {
-                    LOG(e);
-                    return;
-                }
-            }
-        });
-        firstC.join();
-        char buf[DEFAULT_BUFFER_LEN] = {0};
         try
         {
-            int bytesReceived = pair.second.recv(buf);
-            if(bytesReceived > 0)
+            int bytes = c.recv(buf);
+            if (bytes > 0)
             {
-                string msg = buf;
-                //LOG()
-                pair.first.send(msg);
+                LOG("Received from " << c.ip << " " << buf);
+                o.send(buf);
             }
         }
-        catch(UniSocketException& e)
+        catch (UniSocketException &e)
         {
-            if(e.getErrorType() != UniSocketException::TIMED_OUT)
+            if (e.getErrorType() != UniSocketException::TIMED_OUT)
             {
                 LOG(e);
+                c.close();
+                o.close();
                 return;
             }
         }
+    }
+}
+
+void handlePair(ClientPair pair, bool &exitFlag)
+{
+    std::thread first(handleSingClient, std::ref(pair.first), std::ref(pair.second), std::ref(exitFlag));
+    first.detach();
+    handleSingClient(pair.second, pair.first, exitFlag);
 //        try
 //        {
 //            int bytesReceived = client.recv(buf);
@@ -132,9 +118,6 @@ void handlePair(ClientPair pair, bool &exitFlag)
 //            }
 //        }
 
-    }
-    pair.first.close();
-    pair.second.close();
 }
 
 int main(int argc, char **argv)
