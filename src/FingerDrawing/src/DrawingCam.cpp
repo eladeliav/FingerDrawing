@@ -76,7 +76,17 @@ void DrawingCam::sendPoint(const Point& p)
     {
         string msg = "X:" + std::to_string(p.x) + "Y:" + std::to_string(p.y) + "S:" + std::to_string(brushSize) + "C:" + COLOR_TO_STRING.at(currentColor) + "END";
         std::cout << "about to send point: " << msg << std::endl;
-        sock.send(msg);
+        try
+        {
+            sock.send(msg);
+        }
+        catch(UniSocketException& e)
+        {
+            std::cout << e << std::endl;
+            sock.close();
+            connected = false;
+        }
+
     }
     else
     {
@@ -89,7 +99,8 @@ void DrawingCam::getPoints()
     static char buffer[DEFAULT_BUFFER_LEN] = {0};
     while(sock.valid() && connected)
     {
-        if(!drawingMode)
+        memset(buffer, 0, sizeof(buffer));
+        if(!drawingMode || finishedCountdown)
             continue;
         try
         {
@@ -98,9 +109,10 @@ void DrawingCam::getPoints()
             {
                 string xS, yS, sS, cS;
                 string msg = buffer;
-                if(msg == "TOGGLE")
+                if(msg.find("TOGGLE") != std::string::npos)
                 {
-                    this->toggleMode();
+                    std::cout << "RECEIVED TOGGLE MSG" << std::endl;
+                    this->toggleMode(false);
                     continue;
                 }
                 xS = msg.substr(msg.find("X:") + 2, msg.find("Y:"));
@@ -134,8 +146,9 @@ void DrawingCam::getPoints()
             {
                 std::cout << e << std::endl;
                 sock.close();
-                UniSocket::cleanup();
-                exit(1);
+                connected = false;
+                //UniSocket::cleanup();
+                //exit(1);
             }
         }
 
@@ -265,6 +278,7 @@ Mat DrawingCam::getNextFrame(bool shouldFlip, Mat debugFrames[])
     else if(finishedCountdown)
     {
         int fingerNum = fingerPoints.size();
+        std::cout << "FingerNum: " << fingerNum << std::endl;
         HandShape shape = ROCK;
         if(fingerNum == 0)
         {
@@ -278,14 +292,22 @@ Mat DrawingCam::getNextFrame(bool shouldFlip, Mat debugFrames[])
             shape = SCISSORS;
         }
         textToShow.push_back("The Shape you made is: " + SHAPE_TO_STRING.at(shape));
+        std::cout << "STRING SHAPE: " << SHAPE_TO_STRING.at(shape) << std::endl;
         if(connected)
         {
             this->sock.send(SHAPE_TO_STRING.at(shape));
             std::string otherShapeStr;
             HandShape otherShape = ROCK;
-            char buf[1024]= {'\0'};
-            this->sock.recv(buf);
-            otherShapeStr = buf;
+            char buf[DEFAULT_BUFFER_LEN]= {0};
+            try
+            {
+                this->sock.recv(buf);
+                otherShapeStr = buf;
+            }catch(UniSocketException& e)
+            {
+                std::cout << e << std::endl;
+                otherShapeStr = "Rock";
+            }
             textToShow.push_back("Opponent played: " + otherShapeStr);
             for(const auto& p : SHAPE_TO_STRING)
             {
@@ -343,11 +365,11 @@ void DrawingCam::calibrateBackground()
     foregroundExtractor.calibrate(roi);
 }
 
-void DrawingCam::resetCanvas()
+void DrawingCam::resetCanvas(bool send)
 {
     canvas = eraserColor;
     textToShow.clear();
-    if(connected)
+    if(connected && send)
         sendPoint(Point(-1, -1));
 }
 
@@ -384,11 +406,11 @@ void DrawingCam::setColor(Color color)
     currentColor = color;
 }
 
-void DrawingCam::toggleMode()
+void DrawingCam::toggleMode(bool send)
 {
     this->drawingMode = false;
-    resetCanvas();
-    if(connected)
+    resetCanvas(false);
+    if(connected && send)
         this->sock.send("TOGGLE");
     textToShow.clear();
     textToShow.push_back("Get Ready");
