@@ -397,11 +397,11 @@ void DrawingCam::setColor(Color color)
     currentColor = color;
 }
 
-void DrawingCam::toggleMode()
+void DrawingCam::toggleMode(bool send)
 {
     this->drawingMode = false;
     resetCanvas(false);
-    if(connected)
+    if(connected && send)
         this->sock.send("TOGGLE");
     textToShow.clear();
     textToShow.push_back("Get Ready");
