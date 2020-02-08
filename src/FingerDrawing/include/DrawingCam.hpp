@@ -71,6 +71,8 @@ class DrawingCam
 private:
     int cam_id;
     cv::VideoCapture cam;
+    string _ip;
+    int _port = -1;
 
     Rect region_of_interest;
     cv::Mat frame, canvas, foreground, skinMask, roi;
@@ -109,7 +111,7 @@ public:
     void calibrateBackground();
     void resetCanvas(bool send=true);
     void setColor(Color color);
-    bool tryConnect(string ip="127.0.0.1", int port=1234);
+    bool tryConnect();
     void disconnect();
     void toggleMode(bool send=true);
 };

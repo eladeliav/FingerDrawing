@@ -41,6 +41,8 @@ DrawingCam::DrawingCam(int id, string ip, int port)
 {
     cam_id = id;
     brushSize = 5;
+    this->_ip = ip;
+    this->_port = port;
 
     currentPointerPos = cv::Point(0, 0);
 
@@ -298,13 +300,14 @@ Mat DrawingCam::getNextFrame(bool shouldFlip, Mat debugFrames[])
         std::cout << "STRING SHAPE: " << SHAPE_TO_STRING.at(shape) << std::endl;
         if(connected)
         {
-            this->sock.send(SHAPE_TO_STRING.at(shape));
+            UniSocket newCon(this->_ip, this->_port);
+            newCon.send(SHAPE_TO_STRING.at(shape));
             std::string otherShapeStr;
             HandShape otherShape = ROCK;
             char buf[DEFAULT_BUFFER_LEN]= {0};
             try
             {
-                int bytes = this->sock.recv(buf);
+                int bytes = newCon.recv(buf);
                 if(bytes > 0)
                     otherShapeStr = buf;
             }catch(UniSocketException& e)
@@ -332,6 +335,7 @@ Mat DrawingCam::getNextFrame(bool shouldFlip, Mat debugFrames[])
                 textToShow.push_back("You Lose!");
             else
                 textToShow.push_back("Draw!");
+            newCon.close();
         }
         finishedCountdown = false;
         drawingMode = true;
@@ -377,11 +381,11 @@ void DrawingCam::resetCanvas(bool send)
         sendPoint(Point(-1, -1));
 }
 
-bool DrawingCam::tryConnect(string ip, int port)
+bool DrawingCam::tryConnect()
 {
     try
     {
-        sock = UniSocket(ip, port);
+        sock = UniSocket(this->_ip, this->_port);
         if(sock.valid())
             connected = true;
     }catch(UniSocketException& e)
