@@ -75,7 +75,7 @@ void DrawingCam::sendPoint(const Point& p)
     if(sock.valid())
     {
         string msg = "X:" + std::to_string(p.x) + "Y:" + std::to_string(p.y) + "S:" + std::to_string(brushSize) + "C:" + COLOR_TO_STRING.at(currentColor) + "END";
-        std::cout << "about to send point: " << msg << std::endl;
+        //std::cout << "about to send point: " << msg << std::endl;
         try
         {
             sock.send(msg);
@@ -100,7 +100,9 @@ void DrawingCam::getPoints()
     while(sock.valid() && connected)
     {
         memset(buffer, 0, sizeof(buffer));
-        if(!drawingMode || finishedCountdown)
+        if(!drawingMode)
+            continue;
+        if(finishedCountdown)
             continue;
         try
         {
@@ -109,6 +111,7 @@ void DrawingCam::getPoints()
             {
                 string xS, yS, sS, cS;
                 string msg = buffer;
+                std::cout << "RECEIVED MESSAGE: " << msg << std::endl;
                 if(msg.find("TOGGLE") != std::string::npos)
                 {
                     std::cout << "RECEIVED TOGGLE MSG" << std::endl;
@@ -197,7 +200,7 @@ void DrawingCam::start()
         else if (user_input == 'r')
         {
             canvas = eraserColor;
-            if(connected)
+            if(connected && drawingMode)
                 sendPoint(Point(-1, -1));
         }
         else if (user_input == 'e')
@@ -219,7 +222,7 @@ void DrawingCam::draw()
         if (!Helpers::closePointExists(frame, currentPointerPos, 5))
         {
             cv::circle(canvas, currentPointerPos, brushSize, brushColor, FILLED);
-            if(connected)
+            if(connected && drawingMode)
                 sendPoint(currentPointerPos);
         }
 
@@ -301,8 +304,9 @@ Mat DrawingCam::getNextFrame(bool shouldFlip, Mat debugFrames[])
             char buf[DEFAULT_BUFFER_LEN]= {0};
             try
             {
-                this->sock.recv(buf);
-                otherShapeStr = buf;
+                int bytes = this->sock.recv(buf);
+                if(bytes > 0)
+                    otherShapeStr = buf;
             }catch(UniSocketException& e)
             {
                 std::cout << e << std::endl;
@@ -369,7 +373,7 @@ void DrawingCam::resetCanvas(bool send)
 {
     canvas = eraserColor;
     textToShow.clear();
-    if(connected && send)
+    if(connected && send && drawingMode)
         sendPoint(Point(-1, -1));
 }
 
