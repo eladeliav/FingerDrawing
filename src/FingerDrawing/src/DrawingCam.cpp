@@ -72,7 +72,7 @@ DrawingCam::DrawingCam(int id, string ip, int port)
 
 void DrawingCam::sendPoint(const Point& p)
 {
-    if(sock.valid())
+    if(sock.valid() && drawingMode && !finishedCountdown)
     {
         string msg = "X:" + std::to_string(p.x) + "Y:" + std::to_string(p.y) + "S:" + std::to_string(brushSize) + "C:" + COLOR_TO_STRING.at(currentColor) + "END";
         //std::cout << "about to send point: " << msg << std::endl;
@@ -200,7 +200,7 @@ void DrawingCam::start()
         else if (user_input == 'r')
         {
             canvas = eraserColor;
-            if(connected && drawingMode)
+            if(connected)
                 sendPoint(Point(-1, -1));
         }
         else if (user_input == 'e')
@@ -373,7 +373,7 @@ void DrawingCam::resetCanvas(bool send)
 {
     canvas = eraserColor;
     textToShow.clear();
-    if(connected && send && drawingMode)
+    if(connected && send)
         sendPoint(Point(-1, -1));
 }
 
