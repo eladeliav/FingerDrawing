@@ -381,11 +381,11 @@ void DrawingCam::resetCanvas(bool send)
         sendPoint(Point(-1, -1));
 }
 
-bool DrawingCam::tryConnect()
+bool DrawingCam::tryConnect(string ip, int port)
 {
     try
     {
-        sock = UniSocket(this->_ip, this->_port);
+        sock = UniSocket(ip, port);
         if(sock.valid())
             connected = true;
     }catch(UniSocketException& e)

@@ -111,7 +111,7 @@ public:
     void calibrateBackground();
     void resetCanvas(bool send=true);
     void setColor(Color color);
-    bool tryConnect();
+    bool tryConnect(string ip, int port);
     void disconnect();
     void toggleMode(bool send=true);
 };
