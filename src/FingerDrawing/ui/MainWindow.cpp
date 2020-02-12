@@ -44,6 +44,9 @@ void MainWindow::mainLoop()
         cvtColor(foreground, foreground,COLOR_BGR2RGB);
         cvtColor(skinMask, skinMask, COLOR_BGR2RGB);
 
+        if(done)
+            break;
+
         this->ui->img_label->setPixmap(QPixmap::fromImage(QImage(current.data, current.cols, current.rows, current.step, QImage::Format_RGB888)));
         this->debugWindows->foregroundLabel->setPixmap(QPixmap::fromImage(QImage(foreground.data, foreground.cols, foreground.rows, foreground.step, QImage::Format_RGB888)));
         this->debugWindows->skinLabel->setPixmap(QPixmap::fromImage(QImage(skinMask.data, skinMask.cols, skinMask.rows, skinMask.step, QImage::Format_RGB888)));

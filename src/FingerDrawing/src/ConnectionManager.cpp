@@ -61,6 +61,9 @@ DrawPoint ConnectionManager::getPoint()
                 return getPoint();
             }
 
+            if(msg == TOGGLE_MODE)
+                return DrawPoint(true);
+
             int ci = msg.find("X:") + 2;
             xS = msg.substr(ci, msg.find("Y:") - ci);
             ci = msg.find("Y:") + 2;
@@ -175,7 +178,7 @@ bool ConnectionManager::waiting()
 
 void ConnectionManager::sendToggle()
 {
-    this->rockSock.send(TOGGLE_MODE);
+    this->pointsSock.send(TOGGLE_MODE);
 }
 
 bool ConnectionManager::connected()

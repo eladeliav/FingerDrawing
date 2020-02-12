@@ -58,11 +58,15 @@ const std::map<Color, std::string> COLOR_TO_STRING = {
 struct DrawPoint
 {
     DrawPoint(int x, int y, int size, Color color);
-
-    int x;
-    int y;
-    int size;
-    Color color;
+    DrawPoint(bool toggle)
+    {
+        this->toggle = toggle;
+    }
+    int x = -1;
+    int y = -1;
+    int size = -1;
+    Color color = ERASER;
+    bool toggle = false;
 };
 
 class ConnectionManager

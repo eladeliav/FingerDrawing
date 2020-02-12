@@ -86,11 +86,11 @@ void DrawingCam::getPoints()
 {
     while(connectionManager.connected())
     {
+        DrawPoint p = connectionManager.getPoint();
+        if(p.toggle)
+            toggleMode();
         if(!drawingMode)
             continue;
-        if(finishedCountdown)
-            continue;
-        DrawPoint p = connectionManager.getPoint();
         if(p.x == -1 && p.y == -1)
             canvas = eraserColor;
         else
