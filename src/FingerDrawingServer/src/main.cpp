@@ -117,6 +117,7 @@ void forwardMessages(Client &c, Client &o, bool &exitFlag)
             try
             {
                 sock.recv(buf);
+                LOG("RECEIVED: " << buf << " FROM " << sock.ip);
                 if (c.points == sock)
                     o.points.send(buf);
                 else
@@ -126,10 +127,18 @@ void forwardMessages(Client &c, Client &o, bool &exitFlag)
                 if (e.getErrorType() != UniSocketException::TIMED_OUT)
                 {
                     LOG(e);
-                    c.points.close();
-                    c.rocks.close();
-                    o.points.close();
-                    o.rocks.close();
+                    try
+                    {
+                        c.points.close();
+                        c.rocks.close();
+                        o.points.close();
+                        o.rocks.close();
+                    }
+                    catch(UniSocketException& e)
+                    {
+
+                    }
+
                     return;
                 }
             }

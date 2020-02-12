@@ -84,6 +84,7 @@ public:
     void sendHandShape(const HandShape& s);
     void disconnect();
     bool waiting();
+    bool connected();
 private:
 
 };

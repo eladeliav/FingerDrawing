@@ -77,13 +77,14 @@ void DrawingCam::sendPoint(const DrawPoint &p)
 {
     if(!connectionManager.waiting() && drawingMode && !finishedCountdown)
     {
+        std::cout << "ABOUT TO SEND POINT" << std::endl;
         connectionManager.sendPoint(p);
     }
 }
 
 void DrawingCam::getPoints()
 {
-    while(!connectionManager.waiting())
+    while(connectionManager.connected())
     {
         if(!drawingMode)
             continue;

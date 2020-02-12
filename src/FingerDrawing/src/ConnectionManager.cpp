@@ -60,6 +60,7 @@ DrawPoint ConnectionManager::getPoint()
             if(waitingForPlayers && msg == ALL_CONNECTED)
             {
                 waitingForPlayers = false;
+                std::cout << "NO LONGER WAITING FOR PLAYERS" << std::endl;
                 return getPoint();
             }
 
@@ -179,4 +180,9 @@ bool ConnectionManager::waiting()
 void ConnectionManager::sendToggle()
 {
     this->rockSock.send(TOGGLE_MODE);
+}
+
+bool ConnectionManager::connected()
+{
+    return pointsConnected && rockConnected;
 }
