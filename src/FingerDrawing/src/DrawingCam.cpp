@@ -94,7 +94,7 @@ void DrawingCam::getPoints()
         if(p.x == -1 && p.y == -1)
             canvas = eraserColor;
         else
-            cv::circle(canvas, Point(p.x, p.y), p.size, p.color, FILLED);
+            cv::circle(canvas, Point(p.x, p.y), p.size, COLOR_TO_SCALAR.at(p.color), FILLED);
     }
 }
 

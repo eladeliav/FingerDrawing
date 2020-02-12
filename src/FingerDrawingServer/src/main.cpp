@@ -65,32 +65,12 @@ void listenForClients(UniServerSocket &listenSock, bool &exitFlag)
             UniSocket cl2Points = listenSock.accept();
             UniSocket cl2Rocks = listenSock.accept();
             cl2 = Client(cl2Points, cl2Rocks);
+            newPair.second = cl2;
             LOG("New Connection from: " << cl2Points.ip);
             cl1Points.send(ALL_CONNECTED);
             cl2Points.send(ALL_CONNECTED);
             thread tempThread(handlePair, std::move(newPair), std::ref(exitFlag));
             tempThread.detach();
-//            if (temp.valid())
-//            {
-//                LOG("New connection from: " + temp.ip);
-//                temp.setTimeout(TIMEOUT);
-//                newPair.first = temp;
-//                //thread tempThread(handlePair, std::move(temp), std::ref(allClients), std::ref(exitFlag));
-//                //tempThread.detach();
-//            } else
-//                continue;
-//            UniSocket temp2 = listenSock.accept();
-//            if (temp.valid())
-//            {
-//                LOG("New connection from: " + temp2.ip);
-//                LOG("Making new Pair");
-//                temp2.setTimeout(TIMEOUT);
-//                newPair.second = temp2;
-//                temp.send(ALL_CONNECTED);
-//                temp2.send(ALL_CONNECTED);
-//                thread tempThread(handlePair, std::move(newPair), std::ref(exitFlag));
-//                tempThread.detach();
-//            }
         } catch (UniSocketException &e)
         {
             if (e.getErrorType() != UniSocketException::TIMED_OUT)
@@ -117,11 +97,12 @@ void forwardMessages(Client &c, Client &o, bool &exitFlag)
             try
             {
                 sock.recv(buf);
+                std::string sBuf = buf;
                 LOG("RECEIVED: " << buf << " FROM " << sock.ip);
                 if (c.points == sock)
-                    o.points.send(buf);
+                    o.points.send(sBuf);
                 else
-                    o.rocks.send(buf);
+                    o.rocks.send(sBuf);
             }catch(UniSocketException& e)
             {
                 if (e.getErrorType() != UniSocketException::TIMED_OUT)
@@ -136,12 +117,13 @@ void forwardMessages(Client &c, Client &o, bool &exitFlag)
                     }
                     catch(UniSocketException& e)
                     {
-
+                        
                     }
 
                     return;
                 }
             }
+            readable.clear();
         }
     }
 }

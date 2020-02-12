@@ -33,10 +33,7 @@ bool ConnectionManager::tryConnect(std::string ip, int port)
             rockConnected = true;
     }catch(UniSocketException& e)
     {
-        if(pointsSock.valid())
-            pointsSock.close();
-        if(rockSock.valid())
-            rockSock.close();
+        disconnect();
         std::cout << e << std::endl;
         std::cout << "Staying in offline mode" << std::endl;
     }
@@ -90,9 +87,7 @@ DrawPoint ConnectionManager::getPoint()
         if(e.getErrorType() != UniSocketException::TIMED_OUT)
         {
             std::cout << e << std::endl;
-            if(pointsSock.valid())
-                pointsSock.close();
-            pointsConnected = false;
+            disconnect();
         }
     }
     return {0, 0, 0, BLUE};
@@ -108,9 +103,7 @@ void ConnectionManager::sendPoint(const DrawPoint &p)
     catch(UniSocketException& e)
     {
         std::cout << e << std::endl;
-        if(pointsSock.valid())
-            pointsSock.close();
-        pointsConnected = false;
+        disconnect();
     }
 }
 
@@ -136,9 +129,7 @@ HandShape ConnectionManager::getHandShape()
         if(e.getErrorType() != UniSocketException::TIMED_OUT)
         {
             std::cout << e << std::endl;
-            if(rockSock.valid())
-                rockSock.close();
-            rockConnected = false;
+            disconnect();
         }
     }
     return INVALID;
@@ -153,20 +144,22 @@ void ConnectionManager::sendHandShape(const HandShape &s)
     catch(UniSocketException& e)
     {
         std::cout << e << std::endl;
-        if(rockSock.valid())
-            rockSock.close();
-        rockConnected = false;
+        disconnect();
     }
 }
 
 void ConnectionManager::disconnect()
 {
-    if(rockSock.valid())
+    try
+    {
         rockSock.close();
-    if(pointsSock.valid())
         pointsSock.close();
-    pointsConnected = false;
-    rockConnected = false;
+        pointsConnected = false;
+        rockConnected = false;
+    }catch(UniSocketException& e)
+    {
+        std::cout << e << std::endl;
+    }
 }
 
 DrawPoint::DrawPoint(int x, int y, int size, Color color) : x(x), y(y), size(size), color(color)
