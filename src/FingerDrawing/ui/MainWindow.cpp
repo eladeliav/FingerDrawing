@@ -44,6 +44,9 @@ void MainWindow::mainLoop()
         cvtColor(foreground, foreground,COLOR_BGR2RGB);
         cvtColor(skinMask, skinMask, COLOR_BGR2RGB);
 
+        if(!this->cam->connected())
+            this->on_disconnect_btn_clicked();
+        
         if(done)
             break;
 

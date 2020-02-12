@@ -304,7 +304,8 @@ bool DrawingCam::tryConnect(string ip, int port)
 
 void DrawingCam::disconnect()
 {
-    return connectionManager.disconnect();
+    if(connected())
+        connectionManager.disconnect();
 }
 
 void DrawingCam::setColor(Color color)
@@ -339,4 +340,9 @@ void DrawingCam::rockPaperCountdown()
         textToShow.clear();
         timer.stop();
     }
+}
+
+bool DrawingCam::connected()
+{
+    return connectionManager.connected();
 }

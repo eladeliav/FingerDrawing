@@ -72,6 +72,7 @@ public:
     bool tryConnect(string ip, int port);
     void disconnect();
     void toggleMode(bool send=true);
+    bool connected();
 };
 
 #endif //FINGERDRAWING_DRAWINGCAM_HPP
