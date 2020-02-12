@@ -31,7 +31,10 @@ set(SOURCES
         ui/MainWindow.hpp
         ui/MainWindow.cpp
         ui/mainwindow.ui
-        include/timer.hpp)
+        include/timer.hpp
+        include/ConnectionManager.hpp
+        src/ConnectionManager.cpp
+)
 
 configure_file("../../Resources/haarcascade_frontalface_alt.xml" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/haarcascade_frontalface_alt.xml" COPYONLY)
 

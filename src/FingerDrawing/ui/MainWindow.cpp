@@ -31,7 +31,7 @@ void MainWindow::mainLoop()
     this->debugWindows->foregroundLabel->setSizePolicy( QSizePolicy::Ignored, QSizePolicy::Ignored );
     this->debugWindows->skinLabel->setScaledContents( true );
     this->debugWindows->skinLabel->setSizePolicy( QSizePolicy::Ignored, QSizePolicy::Ignored );
-    for(;;)
+    while(this->cam && this->ui && this->debugWindows)
     {
         current = this->cam->getNextFrame(this->shouldFlip, debugFrames);
         foreground = debugFrames[0];

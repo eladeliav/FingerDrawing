@@ -70,151 +70,87 @@ DrawingCam::DrawingCam(int id, string ip, int port)
     skinMask = eraserColor;
     canvas = eraserColor;
     foregroundExtractor.calibrate(roi);
+    connectionManager = ConnectionManager();
 }
 
-void DrawingCam::sendPoint(const Point& p)
+void DrawingCam::sendPoint(const DrawPoint &p)
 {
-    if(sock.valid() && drawingMode && !finishedCountdown)
+    if(!connectionManager.waiting() && drawingMode && !finishedCountdown)
     {
-        string msg = "X:" + std::to_string(p.x) + "Y:" + std::to_string(p.y) + "S:" + std::to_string(brushSize) + "C:" + COLOR_TO_STRING.at(currentColor) + "END";
-        //std::cout << "about to send point: " << msg << std::endl;
-        try
-        {
-            sock.send(msg);
-        }
-        catch(UniSocketException& e)
-        {
-            std::cout << e << std::endl;
-            sock.close();
-            connected = false;
-        }
-
-    }
-    else
-    {
-        std::cout << "Socket invalid can't send to peers" << std::endl;
+        connectionManager.sendPoint(p);
     }
 }
 
 void DrawingCam::getPoints()
 {
-    static char buffer[DEFAULT_BUFFER_LEN] = {0};
-    while(sock.valid() && connected)
+    while(!connectionManager.waiting())
     {
-        memset(buffer, 0, sizeof(buffer));
         if(!drawingMode)
             continue;
         if(finishedCountdown)
             continue;
-        try
-        {
-            int bytesReceived = sock.recv(buffer);
-            if(bytesReceived > 0)
-            {
-                string xS, yS, sS, cS;
-                string msg = buffer;
-                std::cout << "RECEIVED MESSAGE: " << msg << std::endl;
-                if(msg.find("TOGGLE") != std::string::npos)
-                {
-                    std::cout << "RECEIVED TOGGLE MSG" << std::endl;
-                    this->toggleMode(false);
-                    continue;
-                }
-                xS = msg.substr(msg.find("X:") + 2, msg.find("Y:"));
-                yS = msg.substr(msg.find("Y:") + 2, msg.rfind("S:"));
-                sS = msg.substr(msg.rfind("S:") + 2, msg.rfind("C:"));
-                cS = msg.substr(msg.rfind("C:") + 2, msg.rfind("END"));
-                int x, y, s;
-                try
-                {
-                    x = std::stoi(xS);
-                    y = std::stoi(yS);
-                    s = std::stoi(sS);
-                    Color newColor = currentColor;
-                    for(auto it : COLOR_TO_STRING)
-                        if(it.second == cS)
-                            newColor = it.first;
-                    this->brushColor = COLOR_TO_SCALAR.at(newColor);
-                    if(x == -1 && y == -1)
-                        canvas = eraserColor;
-                    else
-                        cv::circle(canvas, Point(x, y), s, brushColor, FILLED);
-                }catch(std::invalid_argument& e)
-                {
-                    std::cout << e.what() << std::endl;
-                }
-
-            }
-        }catch(UniSocketException& e)
-        {
-            if(e.getErrorType() != UniSocketException::TIMED_OUT)
-            {
-                std::cout << e << std::endl;
-                sock.close();
-                connected = false;
-                //UniSocket::cleanup();
-                //exit(1);
-            }
-        }
-
-
-    }
-}
-
-void DrawingCam::start()
-{
-    for (char user_input = cv::waitKey(10); user_input != 27; user_input = cv::waitKey(10))
-    {
-        cam >> frame;
-        flip(frame, frame, 1);
-        roi = frame(region_of_interest);
-
-        rectangle(frame, region_of_interest, Scalar(255, 0, 0));
-        Mat displayCanvas;
-
-        foreground = foregroundExtractor.extractForeground(roi);
-
-        if(!skinDetector.sampled)
-            skinDetector.drawSampler(roi);
-        else
-            skinMask = skinDetector.genMask(foreground);
-
-
-        FacesRemover::removeFaces(roi, frame);
-        displayCanvas = canvas.clone();
-        fingerPoints = FingersDetector::countFingers(skinMask, vector<Mat *>{&displayCanvas, &roi});
-
-        draw();
-        overlayImage(&roi, &canvas);
-
-        std::string sizeAndColor = "Size: " + std::to_string(brushSize);
-        putText(displayCanvas, sizeAndColor, Point(0, 50), FONT_HERSHEY_SIMPLEX, 2, Scalar(0, 0, 255, 255));
-
-        cv::imshow(WINDOW_NAME, frame);
-        imshow("Foreground", foreground);
-        imshow("canvas", displayCanvas);
-        imshow("skin", skinMask);
-
-        if (user_input == '=' && brushSize < 25)
-            brushSize += 5;
-        else if (user_input == '-' && brushSize > 1)
-            brushSize -= 5;
-        else if (user_input == 'r')
-        {
+        DrawPoint p = connectionManager.getPoint();
+        if(p.x == -1 && p.y == -1)
             canvas = eraserColor;
-            if(connected)
-                sendPoint(Point(-1, -1));
-        }
-        else if (user_input == 'e')
-            brushColor = eraserColor;
-        else if (user_input == 'b')
-            brushColor = cv::Scalar(250, 10, 10);
-        else if (user_input == 'c')
-            foregroundExtractor.calibrate(frame);
-        else if (user_input == 's')
-            skinDetector.sample(foreground);
+        else
+            cv::circle(canvas, Point(p.x, p.y), p.size, p.color, FILLED);
     }
 }
+
+//void DrawingCam::start()
+//{
+//    for (char user_input = cv::waitKey(10); user_input != 27; user_input = cv::waitKey(10))
+//    {
+//        cam >> frame;
+//        flip(frame, frame, 1);
+//        roi = frame(region_of_interest);
+//
+//        rectangle(frame, region_of_interest, Scalar(255, 0, 0));
+//        Mat displayCanvas;
+//
+//        foreground = foregroundExtractor.extractForeground(roi);
+//
+//        if(!skinDetector.sampled)
+//            skinDetector.drawSampler(roi);
+//        else
+//            skinMask = skinDetector.genMask(foreground);
+//
+//
+//        FacesRemover::removeFaces(roi, frame);
+//        displayCanvas = canvas.clone();
+//        fingerPoints = FingersDetector::countFingers(skinMask, vector<Mat *>{&displayCanvas, &roi});
+//
+//        draw();
+//        overlayImage(&roi, &canvas);
+//
+//        std::string sizeAndColor = "Size: " + std::to_string(brushSize);
+//        putText(displayCanvas, sizeAndColor, Point(0, 50), FONT_HERSHEY_SIMPLEX, 2, Scalar(0, 0, 255, 255));
+//
+//        cv::imshow(WINDOW_NAME, frame);
+//        imshow("Foreground", foreground);
+//        imshow("canvas", displayCanvas);
+//        imshow("skin", skinMask);
+//
+//        if (user_input == '=' && brushSize < 25)
+//            brushSize += 5;
+//        else if (user_input == '-' && brushSize > 1)
+//            brushSize -= 5;
+//        else if (user_input == 'r')
+//        {
+//            canvas = eraserColor;
+//            if(connected)
+//                sendPoint(Point(-1, -1));
+//        }
+//        else if (user_input == 'e')
+//            brushColor = eraserColor;
+//        else if (user_input == 'b')
+//            brushColor = cv::Scalar(250, 10, 10);
+//        else if (user_input == 'c')
+//            foregroundExtractor.calibrate(frame);
+//        else if (user_input == 's')
+//            skinDetector.sample(foreground);
+//    }
+//}
 
 void DrawingCam::draw()
 {
@@ -224,8 +160,7 @@ void DrawingCam::draw()
         if (!Helpers::closePointExists(frame, currentPointerPos, 5))
         {
             cv::circle(canvas, currentPointerPos, brushSize, brushColor, FILLED);
-            if(connected && drawingMode)
-                sendPoint(currentPointerPos);
+            sendPoint(DrawPoint{currentPointerPos.x, currentPointerPos.y, brushSize, currentColor});
         }
 
     }
@@ -284,7 +219,7 @@ Mat DrawingCam::getNextFrame(bool shouldFlip, Mat debugFrames[])
     {
         int fingerNum = fingerPoints.size();
         std::cout << "FingerNum: " << fingerNum << std::endl;
-        HandShape shape = ROCK;
+        HandShape shape = INVALID;
         if(fingerNum == 0)
         {
             shape = ROCK;
@@ -298,45 +233,29 @@ Mat DrawingCam::getNextFrame(bool shouldFlip, Mat debugFrames[])
         }
         textToShow.push_back("The Shape you made is: " + SHAPE_TO_STRING.at(shape));
         std::cout << "STRING SHAPE: " << SHAPE_TO_STRING.at(shape) << std::endl;
-        if(connected)
+        connectionManager.sendHandShape(shape);
+        HandShape otherShape = connectionManager.getHandShape();
+        std::string otherShapeStr = SHAPE_TO_STRING.at(otherShape);
+        textToShow.push_back("Opponent played: " + otherShapeStr);
+        for(const auto& p : SHAPE_TO_STRING)
         {
-            UniSocket newCon(this->_ip, this->_port);
-            newCon.send(SHAPE_TO_STRING.at(shape));
-            std::string otherShapeStr;
-            HandShape otherShape = ROCK;
-            char buf[DEFAULT_BUFFER_LEN]= {0};
-            try
-            {
-                int bytes = newCon.recv(buf);
-                if(bytes > 0)
-                    otherShapeStr = buf;
-            }catch(UniSocketException& e)
-            {
-                std::cout << e << std::endl;
-                otherShapeStr = "Rock";
-            }
-            textToShow.push_back("Opponent played: " + otherShapeStr);
-            for(const auto& p : SHAPE_TO_STRING)
-            {
-                if(p.second == otherShapeStr)
-                    otherShape = p.first;
-            }
-            if(otherShape == ROCK && shape == PAPER)
-                textToShow.push_back("You Win!");
-            else if(otherShape == ROCK && shape == SCISSORS)
-                textToShow.push_back("You Lose!");
-            else if(otherShape == PAPER && shape == ROCK)
-                textToShow.push_back("You Lose!");
-            else if(otherShape == PAPER && shape == SCISSORS)
-                textToShow.push_back("You Win!");
-            else if(otherShape == SCISSORS && shape == ROCK)
-                textToShow.push_back("You Win!");
-            else if(otherShape == SCISSORS && shape == PAPER)
-                textToShow.push_back("You Lose!");
-            else
-                textToShow.push_back("Draw!");
-            newCon.close();
+            if(p.second == otherShapeStr)
+                otherShape = p.first;
         }
+        if(otherShape == ROCK && shape == PAPER)
+            textToShow.push_back("You Win!");
+        else if(otherShape == ROCK && shape == SCISSORS)
+            textToShow.push_back("You Lose!");
+        else if(otherShape == PAPER && shape == ROCK)
+            textToShow.push_back("You Lose!");
+        else if(otherShape == PAPER && shape == SCISSORS)
+            textToShow.push_back("You Win!");
+        else if(otherShape == SCISSORS && shape == ROCK)
+            textToShow.push_back("You Win!");
+        else if(otherShape == SCISSORS && shape == PAPER)
+            textToShow.push_back("You Lose!");
+        else
+            textToShow.push_back("Draw!");
         finishedCountdown = false;
         drawingMode = true;
     }
@@ -345,16 +264,6 @@ Mat DrawingCam::getNextFrame(bool shouldFlip, Mat debugFrames[])
 
     debugFrames[0] = Mat(foreground);
     debugFrames[1] = Mat(skinMask);
-//    cv::imshow(WINDOW_NAME, frame);
-//    if(showDebug)
-//    {
-//        imshow("Foreground", foreground);
-//        imshow("canvas", displayCanvas);
-//        imshow("skin", skinMask);
-//    }
-//    else
-//        destroyAllWindows();
-
     return frame;
 }
 
@@ -377,35 +286,18 @@ void DrawingCam::resetCanvas(bool send)
 {
     canvas = eraserColor;
     textToShow.clear();
-    if(connected && send)
-        sendPoint(Point(-1, -1));
+    if(send)
+        sendPoint({-1, -1, -1, BLUE});
 }
 
 bool DrawingCam::tryConnect(string ip, int port)
 {
-    try
-    {
-        sock = UniSocket(ip, port);
-        if(sock.valid())
-            connected = true;
-    }catch(UniSocketException& e)
-    {
-        std::cout << e << std::endl;
-        std::cout << "Staying in offline mode" << std::endl;
-    }
-
-    if(connected)
-    {
-        thread getPointsThread(&DrawingCam::getPoints, this);
-        getPointsThread.detach();
-    }
-    return connected;
+    return connectionManager.tryConnect(ip, port);
 }
 
 void DrawingCam::disconnect()
 {
-    connected = false;
-    sock.close();
+    return connectionManager.disconnect();
 }
 
 void DrawingCam::setColor(Color color)
@@ -414,12 +306,13 @@ void DrawingCam::setColor(Color color)
     currentColor = color;
 }
 
-void DrawingCam::toggleMode(bool send)
+void DrawingCam::toggleMode()
 {
+    if(connectionManager.waiting())
+        return;
     this->drawingMode = false;
     resetCanvas(false);
-    if(connected && send)
-        this->sock.send("TOGGLE");
+    connectionManager.sendToggle();
     textToShow.clear();
     textToShow.push_back("Get Ready");
     textToShow.push_back(std::to_string(countdown));
