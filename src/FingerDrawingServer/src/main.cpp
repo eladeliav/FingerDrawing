@@ -4,19 +4,39 @@
 #include <iostream>
 #include <UniSockets/Core.hpp>
 #include <opencv2/opencv.hpp>
+#include <utility>
 #include <vector>
 #include <thread>
 #include <string>
 
 #define LOG(x) std::cout << x << std::endl
 #define TIMEOUT 0
+#define WAIT_MESSAGE "WAITING_FOR_SECOND_PLAYER"
+#define ALL_CONNECTED "ALL_CONNECTED"
 
 using namespace cv;
 using std::vector;
 using std::thread;
 using std::string;
 
-typedef std::pair<UniSocket, UniSocket> ClientPair;
+struct SockWrap
+{
+    UniSocket sock;
+    bool points = true;
+};
+
+struct Client
+{
+    Client() = default;
+
+    Client(UniSocket points, UniSocket rocks) : points(std::move(points)), rocks(std::move(rocks))
+    {}
+
+    UniSocket points;
+    UniSocket rocks;
+};
+
+typedef std::pair<Client, Client> ClientPair;
 typedef std::vector<ClientPair> ClientPairList;
 
 template<class T>
@@ -34,26 +54,23 @@ void listenForClients(UniServerSocket &listenSock, bool &exitFlag)
         try
         {
             ClientPair newPair;
-            UniSocket temp = listenSock.accept();
-            if (temp.valid())
-            {
-                LOG("New connection from: " + temp.ip);
-                temp.setTimeout(TIMEOUT);
-                newPair.first = temp;
-                //thread tempThread(handlePair, std::move(temp), std::ref(allClients), std::ref(exitFlag));
-                //tempThread.detach();
-            } else
-                continue;
-            UniSocket temp2 = listenSock.accept();
-            if (temp.valid())
-            {
-                LOG("New connection from: " + temp2.ip);
-                LOG("Making new Pair");
-                temp2.setTimeout(TIMEOUT);
-                newPair.second = temp2;
-                thread tempThread(handlePair, std::move(newPair), std::ref(exitFlag));
-                tempThread.detach();
-            }
+            Client cl1;
+            Client cl2;
+            UniSocket cl1Points = listenSock.accept();
+            UniSocket cl1Rocks = listenSock.accept();
+            cl1 = Client(cl1Points, cl1Rocks);
+            LOG("New Connection from: " << cl1Points.ip);
+            newPair.first = cl1;
+
+            UniSocket cl2Points = listenSock.accept();
+            UniSocket cl2Rocks = listenSock.accept();
+            cl2 = Client(cl2Points, cl2Rocks);
+            newPair.second = cl2;
+            LOG("New Connection from: " << cl2Points.ip);
+            cl1Points.send(ALL_CONNECTED);
+            cl2Points.send(ALL_CONNECTED);
+            thread tempThread(handlePair, std::move(newPair), std::ref(exitFlag));
+            tempThread.detach();
         } catch (UniSocketException &e)
         {
             if (e.getErrorType() != UniSocketException::TIMED_OUT)
@@ -66,59 +83,56 @@ void listenForClients(UniServerSocket &listenSock, bool &exitFlag)
     listenSock.close();
 }
 
-void handleSingClient(UniSocket &c, UniSocket &o, bool &exitFlag)
+void forwardMessages(Client &c, Client &o, bool &exitFlag)
 {
     char buf[DEFAULT_BUFFER_LEN] = {0};
-    while (!exitFlag && c.valid() && o.valid())
+    std::vector<UniSocket> cS{c.points, c.rocks};
+    std::vector<UniSocket> readable;
+    while (!exitFlag)
     {
         memset(buf, 0, sizeof(buf));
-        try
+        readable = UniSocket::select(cS, TIMEOUT);
+        for (UniSocket const &sock : readable)
         {
-            int bytes = c.recv(buf);
-            if (bytes > 0)
+            try
             {
-                LOG("Received from " << c.ip << " " << buf);
-                o.send(buf);
-            }
-        }
-        catch (UniSocketException &e)
-        {
-            if (e.getErrorType() != UniSocketException::TIMED_OUT)
+                sock.recv(buf);
+                std::string sBuf = buf;
+                LOG("RECEIVED: " << buf << " FROM " << sock.ip);
+                if (c.points == sock)
+                    o.points.send(sBuf);
+                else
+                    o.rocks.send(sBuf);
+            }catch(UniSocketException& e)
             {
-                LOG(e);
-                c.close();
-                o.close();
-                return;
+                if (e.getErrorType() != UniSocketException::TIMED_OUT)
+                {
+                    LOG(e);
+                    try
+                    {
+                        c.points.close();
+                        c.rocks.close();
+                        o.points.close();
+                        o.rocks.close();
+                    }
+                    catch(UniSocketException& e)
+                    {
+
+                    }
+
+                    return;
+                }
             }
+            readable.clear();
         }
     }
 }
 
 void handlePair(ClientPair pair, bool &exitFlag)
 {
-    std::thread first(handleSingClient, std::ref(pair.first), std::ref(pair.second), std::ref(exitFlag));
-    first.detach();
-    handleSingClient(pair.second, pair.first, exitFlag);
-//        try
-//        {
-//            int bytesReceived = client.recv(buf);
-//
-//            if(bytesReceived > 0)
-//            {
-//                string message = buf;
-//                LOG(client.ip << ": " << message);
-//                UniSocket::broadcastToSet(message, allClients, false, client);
-//            }
-//        }catch(UniSocketException& e)
-//        {
-//            if(e.getErrorType() != UniSocketException::TIMED_OUT)
-//            {
-//                LOG(e);
-//                eraseFromVec(allClients, client);
-//                break;
-//            }
-//        }
-
+    std::thread th1(forwardMessages, std::ref(pair.first), std::ref(pair.second), std::ref(exitFlag));
+    th1.detach();
+    forwardMessages(pair.second, pair.first, exitFlag);
 }
 
 int main(int argc, char **argv)

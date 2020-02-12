@@ -31,7 +31,7 @@ void MainWindow::mainLoop()
     this->debugWindows->foregroundLabel->setSizePolicy( QSizePolicy::Ignored, QSizePolicy::Ignored );
     this->debugWindows->skinLabel->setScaledContents( true );
     this->debugWindows->skinLabel->setSizePolicy( QSizePolicy::Ignored, QSizePolicy::Ignored );
-    for(;;)
+    while(this->cam && this->ui && this->debugWindows && !done)
     {
         current = this->cam->getNextFrame(this->shouldFlip, debugFrames);
         foreground = debugFrames[0];
@@ -43,6 +43,12 @@ void MainWindow::mainLoop()
         cvtColor(current, current,COLOR_BGR2RGB);
         cvtColor(foreground, foreground,COLOR_BGR2RGB);
         cvtColor(skinMask, skinMask, COLOR_BGR2RGB);
+
+        if(!this->cam->connected())
+            this->on_disconnect_btn_clicked();
+        
+        if(done)
+            break;
 
         this->ui->img_label->setPixmap(QPixmap::fromImage(QImage(current.data, current.cols, current.rows, current.step, QImage::Format_RGB888)));
         this->debugWindows->foregroundLabel->setPixmap(QPixmap::fromImage(QImage(foreground.data, foreground.cols, foreground.rows, foreground.step, QImage::Format_RGB888)));
@@ -100,7 +106,10 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
     else if(event->key() == Qt::Key_4)
         this->on_deraser_radio_clicked();
     else if(event->key() == Qt::Key_Escape)
+    {
+        this->done = true;
         QCoreApplication::exit(0);
+    }
     else if(event->key() == Qt::Key_T)
         this->cam->toggleMode();
 
