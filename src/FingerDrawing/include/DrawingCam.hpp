@@ -71,7 +71,7 @@ public:
     void setColor(Color color);
     bool tryConnect(string ip, int port);
     void disconnect();
-    void toggleMode(bool send);
+    void toggleMode(bool send=true);
 };
 
 #endif //FINGERDRAWING_DRAWINGCAM_HPP
