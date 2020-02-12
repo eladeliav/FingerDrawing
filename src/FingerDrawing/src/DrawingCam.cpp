@@ -41,11 +41,13 @@ DrawingCam::DrawingCam(int id, string ip, int port)
 {
     cam_id = id;
     brushSize = 5;
+    this->_ip = ip;
+    this->_port = port;
 
     currentPointerPos = cv::Point(0, 0);
 
-    eraserColor = cv::Scalar(0, 0, 0);
-    brushColor = cv::Scalar(250, 10, 10);
+    eraserColor = ERASER_SCALAR;
+    brushColor = BLUE_SCALAR;
 
     cam = cv::VideoCapture(cam_id);
 
@@ -63,130 +65,93 @@ DrawingCam::DrawingCam(int id, string ip, int port)
     foregroundExtractor = ForegroundExtractor();
     skinDetector = SkinDetector();
 
-    sock = UniSocket(ip, port);
-    thread getPointsThread(&DrawingCam::getPoints, this);
-    getPointsThread.detach();
-
     canvas = cv::Mat(roi.size(), CV_8UC3);
     skinMask = cv::Mat(roi.size(), CV_8UC3);
     skinMask = eraserColor;
     canvas = eraserColor;
     foregroundExtractor.calibrate(roi);
+    connectionManager = ConnectionManager();
 }
 
-void DrawingCam::sendPoint(const Point& p)
+void DrawingCam::sendPoint(const DrawPoint &p)
 {
-    if(sock.valid())
+    if(!connectionManager.waiting() && drawingMode && !finishedCountdown)
     {
-        string msg = "X:" + std::to_string(p.x) + "Y:" + std::to_string(p.y) + "S:" + std::to_string(brushSize) + "END";
-        std::cout << "about to send point: " << msg << std::endl;
-        sock.send(msg);
-    }
-    else
-    {
-        std::cout << "Socket invalid can't send to peers" << std::endl;
+        std::cout << "ABOUT TO SEND POINT" << std::endl;
+        connectionManager.sendPoint(p);
     }
 }
 
 void DrawingCam::getPoints()
 {
-    static char buffer[DEFAULT_BUFFER_LEN] = {0};
-    while(sock.valid())
+    while(connectionManager.connected())
     {
-        try
-        {
-            int bytesReceived = sock.recv(buffer);
-            if(bytesReceived > 0)
-            {
-                string xS, yS, sS;
-                string msg = buffer;
-                xS = msg.substr(msg.find("X:") + 2, msg.find("Y:"));
-                yS = msg.substr(msg.find("Y:") + 2, msg.rfind("S:"));
-                sS = msg.substr(msg.rfind("S:") + 2, msg.rfind("END"));
-                int x, y, s;
-                try
-                {
-                    x = std::stoi(xS);
-                    y = std::stoi(yS);
-                    s = std::stoi(sS);
-                    if(x == -1 && y == -1)
-                        canvas = eraserColor;
-                    else
-                        cv::circle(canvas, Point(x, y), s, brushColor, FILLED);
-                }catch(std::invalid_argument& e)
-                {
-                    std::cout << e.what() << std::endl;
-                }
-
-            }
-        }catch(UniSocketException& e)
-        {
-            if(e.getErrorType() != UniSocketException::TIMED_OUT)
-            {
-                std::cout << e << std::endl;
-                sock.close();
-                UniSocket::cleanup();
-                exit(1);
-            }
-        }
-
-
-    }
-}
-
-void DrawingCam::start()
-{
-    for (char user_input = cv::waitKey(10); user_input != 27; user_input = cv::waitKey(10))
-    {
-        cam >> frame;
-        flip(frame, frame, 1);
-        roi = frame(region_of_interest);
-
-        rectangle(frame, region_of_interest, Scalar(255, 0, 0));
-        Mat displayCanvas;
-
-        foreground = foregroundExtractor.extractForeground(roi);
-
-        if(!skinDetector.alreadySampled())
-            skinDetector.drawSampler(roi);
-        else
-            skinMask = skinDetector.genMask(foreground);
-
-
-        FacesRemover::removeFaces(roi, frame);
-        displayCanvas = canvas.clone();
-        fingerPoints = FingersDetector::countFingers(skinMask, vector<Mat *>{&displayCanvas, &roi});
-
-        draw();
-        overlayImage(&roi, &canvas);
-
-        std::string sizeAndColor = "Size: " + std::to_string(brushSize);
-        putText(displayCanvas, sizeAndColor, Point(0, 50), FONT_HERSHEY_SIMPLEX, 2, Scalar(0, 0, 255, 255));
-
-        cv::imshow(WINDOW_NAME, frame);
-        imshow("Foreground", foreground);
-        imshow("canvas", displayCanvas);
-        imshow("skin", skinMask);
-
-        if (user_input == '=' && brushSize < 25)
-            brushSize += 5;
-        else if (user_input == '-' && brushSize > 1)
-            brushSize -= 5;
-        else if (user_input == 'r')
-        {
+        DrawPoint p = connectionManager.getPoint();
+        if(p.toggle)
+            toggleMode(false);
+        if(!drawingMode)
+            continue;
+        if(p.x == -1 && p.y == -1)
             canvas = eraserColor;
-            sendPoint(Point(-1, -1));
-        }
-        else if (user_input == 'e')
-            brushColor = eraserColor;
-        else if (user_input == 'b')
-            brushColor = cv::Scalar(250, 10, 10);
-        else if (user_input == 'c')
-            foregroundExtractor.calibrate(frame);
-        else if (user_input == 's')
-            skinDetector.sample(foreground);
+        else
+            cv::circle(canvas, Point(p.x, p.y), p.size, COLOR_TO_SCALAR.at(p.color), FILLED);
     }
 }
+
+//void DrawingCam::start()
+//{
+//    for (char user_input = cv::waitKey(10); user_input != 27; user_input = cv::waitKey(10))
+//    {
+//        cam >> frame;
+//        flip(frame, frame, 1);
+//        roi = frame(region_of_interest);
+//
+//        rectangle(frame, region_of_interest, Scalar(255, 0, 0));
+//        Mat displayCanvas;
+//
+//        foreground = foregroundExtractor.extractForeground(roi);
+//
+//        if(!skinDetector.sampled)
+//            skinDetector.drawSampler(roi);
+//        else
+//            skinMask = skinDetector.genMask(foreground);
+//
+//
+//        FacesRemover::removeFaces(roi, frame);
+//        displayCanvas = canvas.clone();
+//        fingerPoints = FingersDetector::countFingers(skinMask, vector<Mat *>{&displayCanvas, &roi});
+//
+//        draw();
+//        overlayImage(&roi, &canvas);
+//
+//        std::string sizeAndColor = "Size: " + std::to_string(brushSize);
+//        putText(displayCanvas, sizeAndColor, Point(0, 50), FONT_HERSHEY_SIMPLEX, 2, Scalar(0, 0, 255, 255));
+//
+//        cv::imshow(WINDOW_NAME, frame);
+//        imshow("Foreground", foreground);
+//        imshow("canvas", displayCanvas);
+//        imshow("skin", skinMask);
+//
+//        if (user_input == '=' && brushSize < 25)
+//            brushSize += 5;
+//        else if (user_input == '-' && brushSize > 1)
+//            brushSize -= 5;
+//        else if (user_input == 'r')
+//        {
+//            canvas = eraserColor;
+//            if(connected)
+//                sendPoint(Point(-1, -1));
+//        }
+//        else if (user_input == 'e')
+//            brushColor = eraserColor;
+//        else if (user_input == 'b')
+//            brushColor = cv::Scalar(250, 10, 10);
+//        else if (user_input == 'c')
+//            foregroundExtractor.calibrate(frame);
+//        else if (user_input == 's')
+//            skinDetector.sample(foreground);
+//    }
+//}
 
 void DrawingCam::draw()
 {
@@ -196,7 +161,7 @@ void DrawingCam::draw()
         if (!Helpers::closePointExists(frame, currentPointerPos, 5))
         {
             cv::circle(canvas, currentPointerPos, brushSize, brushColor, FILLED);
-            sendPoint(currentPointerPos);
+            sendPoint(DrawPoint{currentPointerPos.x, currentPointerPos.y, brushSize, currentColor});
         }
 
     }
@@ -208,19 +173,34 @@ DrawingCam::~DrawingCam()
     cam.release();
 }
 
-Mat DrawingCam::getNextFrame(char user_input)
+Mat DrawingCam::getNextFrame(bool shouldFlip, Mat debugFrames[])
 {
+    if(!cam.isOpened())
+        return Mat();
     cam >> frame;
-    flip(frame, frame, 1);
+    if(shouldFlip)
+        flip(frame, frame, 1);
     roi = frame(region_of_interest);
 
     rectangle(frame, region_of_interest, Scalar(255, 0, 0));
+
+    int y = 40;
+    for(const auto& s : textToShow)
+    {
+        putText(frame, s, Point(0, y),
+                FONT_HERSHEY_SIMPLEX, 1, Scalar(0, 0, 255, 255));
+        y += 30;
+    }
     Mat displayCanvas;
 
     foreground = foregroundExtractor.extractForeground(roi);
 
-    if(!skinDetector.alreadySampled())
+    if(!skinDetector.sampled)
+    {
         skinDetector.drawSampler(roi);
+        skinMask = Mat(roi.size(), CV_8UC1);
+        skinMask = eraserColor;
+    }
     else
         skinMask = skinDetector.genMask(foreground);
 
@@ -229,33 +209,140 @@ Mat DrawingCam::getNextFrame(char user_input)
     displayCanvas = canvas.clone();
     fingerPoints = FingersDetector::countFingers(skinMask, vector<Mat *>{&displayCanvas, &roi});
 
-    draw();
-    overlayImage(&roi, &canvas);
-
-    std::string sizeAndColor = "Size: " + std::to_string(brushSize);
-    putText(displayCanvas, sizeAndColor, Point(0, 50), FONT_HERSHEY_SIMPLEX, 2, Scalar(0, 0, 255, 255));
-
-//    cv::imshow(WINDOW_NAME, frame);
-//    imshow("Foreground", foreground);
-//    imshow("canvas", displayCanvas);
-//    imshow("skin", skinMask);
-
-    if (user_input == '=' && brushSize < 25)
-        brushSize += 5;
-    else if (user_input == '-' && brushSize > 1)
-        brushSize -= 5;
-    else if (user_input == 'r')
+    if(drawingMode)
     {
-        canvas = eraserColor;
-        sendPoint(Point(-1, -1));
+        draw();
+        Mat transparent;
+        cv::inRange(canvas, ERASER_SCALAR, ERASER_SCALAR, transparent);
+        canvas.copyTo(roi, 255 - transparent);
     }
-    else if (user_input == 'e')
-        brushColor = eraserColor;
-    else if (user_input == 'b')
-        brushColor = cv::Scalar(250, 10, 10);
-    else if (user_input == 'c')
-        foregroundExtractor.calibrate(frame);
-    else if (user_input == 's')
-        skinDetector.sample(foreground);
+    else if(finishedCountdown)
+    {
+        int fingerNum = fingerPoints.size();
+        std::cout << "FingerNum: " << fingerNum << std::endl;
+        HandShape shape = INVALID;
+        if(fingerNum == 0)
+        {
+            shape = ROCK;
+        }else if(fingerNum == 1)
+        {
+            shape = PAPER;
+        }
+        else if(fingerNum == 2)
+        {
+            shape = SCISSORS;
+        }
+        textToShow.push_back("The Shape you made is: " + SHAPE_TO_STRING.at(shape));
+        std::cout << "STRING SHAPE: " << SHAPE_TO_STRING.at(shape) << std::endl;
+        connectionManager.sendHandShape(shape);
+        HandShape otherShape = connectionManager.getHandShape();
+        std::string otherShapeStr = SHAPE_TO_STRING.at(otherShape);
+        textToShow.push_back("Opponent played: " + otherShapeStr);
+        for(const auto& p : SHAPE_TO_STRING)
+        {
+            if(p.second == otherShapeStr)
+                otherShape = p.first;
+        }
+        if(otherShape == ROCK && shape == PAPER)
+            textToShow.push_back("You Win!");
+        else if(otherShape == ROCK && shape == SCISSORS)
+            textToShow.push_back("You Lose!");
+        else if(otherShape == PAPER && shape == ROCK)
+            textToShow.push_back("You Lose!");
+        else if(otherShape == PAPER && shape == SCISSORS)
+            textToShow.push_back("You Win!");
+        else if(otherShape == SCISSORS && shape == ROCK)
+            textToShow.push_back("You Win!");
+        else if(otherShape == SCISSORS && shape == PAPER)
+            textToShow.push_back("You Lose!");
+        else
+            textToShow.push_back("Draw!");
+        finishedCountdown = false;
+        drawingMode = true;
+    }
+
+
+
+    debugFrames[0] = Mat(foreground);
+    debugFrames[1] = Mat(skinMask);
     return frame;
+}
+
+void DrawingCam::sampleSkinColor()
+{
+    skinDetector.sample(foreground);
+}
+
+void DrawingCam::resetSkinColor()
+{
+    skinDetector.resetThresholds();
+}
+
+void DrawingCam::calibrateBackground()
+{
+    foregroundExtractor.calibrate(roi);
+}
+
+void DrawingCam::resetCanvas(bool send)
+{
+    canvas = eraserColor;
+    textToShow.clear();
+    if(send)
+        sendPoint({-1, -1, -1, BLUE});
+}
+
+bool DrawingCam::tryConnect(string ip, int port)
+{
+    bool s = connectionManager.tryConnect(ip, port);
+    if(s)
+    {
+        thread getPointsThread(&DrawingCam::getPoints, this);
+        getPointsThread.detach();
+    }
+    return s;
+}
+
+void DrawingCam::disconnect()
+{
+    if(connected())
+        connectionManager.disconnect();
+}
+
+void DrawingCam::setColor(Color color)
+{
+    this->brushColor = COLOR_TO_SCALAR.at(color);
+    currentColor = color;
+}
+
+void DrawingCam::toggleMode(bool send)
+{
+    if(connectionManager.waiting())
+        return;
+    this->drawingMode = false;
+    resetCanvas(false);
+    if(send)
+        connectionManager.sendToggle();
+    textToShow.clear();
+    textToShow.push_back("Get Ready");
+    textToShow.push_back(std::to_string(countdown));
+    timer.setInterval(&DrawingCam::rockPaperCountdown, 1000, this);
+}
+
+void DrawingCam::rockPaperCountdown()
+{
+    std::cout << "Countdown: " << countdown << std::endl;
+    textToShow.back() = std::to_string(countdown);
+    countdown--;
+    if (countdown == -1)
+    {
+        countdown = 5;
+        finishedCountdown = true;
+        textToShow.clear();
+        timer.stop();
+    }
+}
+
+bool DrawingCam::connected()
+{
+    return connectionManager.connected();
 }

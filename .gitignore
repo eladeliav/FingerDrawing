@@ -1,6 +1,7 @@
 bin/
 CMakeFiles/
 build/
+linuxBuild/
 
 CMakeLists.txt.user
 

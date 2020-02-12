@@ -79,13 +79,21 @@ void SkinDetector::calcThresholds(Mat sample1, Mat sample2)
 
     // the V channel shouldn't be used. By ignoring it, shadows on the hand wouldn't interfere with segmentation.
     // Unfortunately there's a bug somewhere and not using the V channel causes some problem. This shouldn't be too hard to fix.
-//    vLow = min(hsvMeansSample1[2], hsvMeansSample2[2]) - OFFSET_LOW_THRESH;
-//    vHigh = max(hsvMeansSample1[2], hsvMeansSample2[2]) + OFFSET_HIGH_THRESH;
-    vLow = 0;
-    vHigh = 255;
+    vLow = min(hsvMeansSample1[2], hsvMeansSample2[2]) - OFFSET_LOW_THRESH;
+    vHigh = max(hsvMeansSample1[2], hsvMeansSample2[2]) + OFFSET_HIGH_THRESH;
+//    vLow = 0;
+//    vHigh = 255;
 }
 
-bool SkinDetector::alreadySampled()
+void SkinDetector::resetThresholds()
 {
-    return sampled;
+    sampled = false;
+    hLow = 0;
+    hHigh = 0;
+
+    sLow = 0;
+    sHigh = 0;
+
+    vLow = 0;
+    vHigh = 0;
 }
