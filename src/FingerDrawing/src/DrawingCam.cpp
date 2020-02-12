@@ -88,7 +88,7 @@ void DrawingCam::getPoints()
     {
         DrawPoint p = connectionManager.getPoint();
         if(p.toggle)
-            toggleMode();
+            toggleMode(false);
         if(!drawingMode)
             continue;
         if(p.x == -1 && p.y == -1)
@@ -313,13 +313,14 @@ void DrawingCam::setColor(Color color)
     currentColor = color;
 }
 
-void DrawingCam::toggleMode()
+void DrawingCam::toggleMode(bool send)
 {
     if(connectionManager.waiting())
         return;
     this->drawingMode = false;
     resetCanvas(false);
-    connectionManager.sendToggle();
+    if(send)
+        connectionManager.sendToggle();
     textToShow.clear();
     textToShow.push_back("Get Ready");
     textToShow.push_back(std::to_string(countdown));
