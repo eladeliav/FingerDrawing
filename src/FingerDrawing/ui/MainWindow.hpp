@@ -86,6 +86,7 @@ private:
     DebugWindows* debugWindows;
     bool shouldFlip = true;
     bool showDebug = false;
+    bool done = false;
     void keyPressEvent(QKeyEvent* event) override;
     void setRadio(int index);
 };

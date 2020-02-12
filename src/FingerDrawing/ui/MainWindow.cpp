@@ -31,7 +31,7 @@ void MainWindow::mainLoop()
     this->debugWindows->foregroundLabel->setSizePolicy( QSizePolicy::Ignored, QSizePolicy::Ignored );
     this->debugWindows->skinLabel->setScaledContents( true );
     this->debugWindows->skinLabel->setSizePolicy( QSizePolicy::Ignored, QSizePolicy::Ignored );
-    while(this->cam && this->ui && this->debugWindows)
+    while(this->cam && this->ui && this->debugWindows && !done)
     {
         current = this->cam->getNextFrame(this->shouldFlip, debugFrames);
         foreground = debugFrames[0];
@@ -100,7 +100,10 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
     else if(event->key() == Qt::Key_4)
         this->on_deraser_radio_clicked();
     else if(event->key() == Qt::Key_Escape)
+    {
+        this->done = true;
         QCoreApplication::exit(0);
+    }
     else if(event->key() == Qt::Key_T)
         this->cam->toggleMode();
 

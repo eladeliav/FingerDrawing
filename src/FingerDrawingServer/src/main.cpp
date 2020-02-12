@@ -117,7 +117,7 @@ void forwardMessages(Client &c, Client &o, bool &exitFlag)
                     }
                     catch(UniSocketException& e)
                     {
-                        
+
                     }
 
                     return;

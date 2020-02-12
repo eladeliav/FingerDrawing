@@ -61,11 +61,14 @@ DrawPoint ConnectionManager::getPoint()
                 return getPoint();
             }
 
-
-            xS = msg.substr(msg.find("X:") + 2, msg.find("Y:"));
-            yS = msg.substr(msg.find("Y:") + 2, msg.rfind("S:"));
-            sS = msg.substr(msg.rfind("S:") + 2, msg.rfind("C:"));
-            cS = msg.substr(msg.rfind("C:") + 2, msg.rfind("END"));
+            int ci = msg.find("X:") + 2;
+            xS = msg.substr(ci, msg.find("Y:") - ci);
+            ci = msg.find("Y:") + 2;
+            yS = msg.substr(ci, msg.rfind("S:") - ci);
+            ci = msg.find("S:") + 2;
+            sS = msg.substr(ci, msg.rfind("C:") - ci);
+            ci = msg.find("C:") + 2;
+            cS = msg.substr(ci, msg.rfind("END") - ci);
             int x, y, s;
             try
             {
