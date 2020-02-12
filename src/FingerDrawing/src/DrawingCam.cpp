@@ -293,7 +293,13 @@ void DrawingCam::resetCanvas(bool send)
 
 bool DrawingCam::tryConnect(string ip, int port)
 {
-    return connectionManager.tryConnect(ip, port);
+    bool s = connectionManager.tryConnect(ip, port);
+    if(s)
+    {
+        thread getPointsThread(&DrawingCam::getPoints, this);
+        getPointsThread.detach();
+    }
+    return s;
 }
 
 void DrawingCam::disconnect()
