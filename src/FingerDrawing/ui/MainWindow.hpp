@@ -73,13 +73,13 @@ private slots:
 
     void on_connect_btn_clicked();
 
-    void on_ared_radio_clicked();
+    void red();
 
-    void on_bblue_radio_clicked();
+    void blue();
 
-    void on_cgreen_radio_clicked();
+    void green();
 
-    void on_deraser_radio_clicked();
+    void eraser();
 
 private:
     Ui::MainWindow *ui;

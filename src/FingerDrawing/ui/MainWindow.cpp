@@ -103,13 +103,13 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
     else if(event->key() == Qt::Key_X)
         this->on_reset_sample_btn_clicked();
     else if(event->key() == Qt::Key_1)
-        this->on_ared_radio_clicked();
+        this->red();
     else if(event->key() == Qt::Key_2)
-        this->on_bblue_radio_clicked();
+        this->blue();
     else if(event->key() == Qt::Key_3)
-        this->on_cgreen_radio_clicked();
+        this->green();
     else if(event->key() == Qt::Key_4)
-        this->on_deraser_radio_clicked();
+        this->eraser();
     else if(event->key() == Qt::Key_Escape)
     {
         this->done = true;
@@ -152,22 +152,22 @@ void MainWindow::on_disconnect_btn_clicked()
     this->ui->disconnect_btn->setEnabled(false);
 }
 
-void MainWindow::on_ared_radio_clicked()
+void MainWindow::red()
 {
     this->cam->setColor(RED);
 }
 
-void MainWindow::on_bblue_radio_clicked()
+void MainWindow::blue()
 {
     this->cam->setColor(GREEN);
 }
 
-void MainWindow::on_cgreen_radio_clicked()
+void MainWindow::green()
 {
     this->cam->setColor(BLUE);
 }
 
-void MainWindow::on_deraser_radio_clicked()
+void MainWindow::eraser()
 {
     this->cam->setColor(ERASER);
 }
