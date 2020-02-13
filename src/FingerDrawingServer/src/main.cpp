@@ -10,7 +10,7 @@
 #include <string>
 
 #define LOG(x) std::cout << x << std::endl
-#define TIMEOUT 3
+#define TIMEOUT 0
 #define WAIT_MESSAGE "WAITING_FOR_SECOND_PLAYER"
 #define ALL_CONNECTED "ALL_CONNECTED"
 
