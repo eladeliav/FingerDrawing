@@ -89,6 +89,8 @@ vector<Point> FingersDetector::countFingers(const Mat &frame, vector<Mat *> outp
 
     for (auto &f : outputFrames)
     {
+        if(!f)
+            continue;
         drawContours(*f, contours, maxIndex, Scalar(0, 255, 0));
         drawContours(*f, vector<vector<Point>>(1, hull_points), 0, Scalar(0, 0, 255));
         rectangle(*f, boundingRectangle, Scalar(255, 0, 0));

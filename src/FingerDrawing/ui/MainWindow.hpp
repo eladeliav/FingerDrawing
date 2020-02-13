@@ -32,10 +32,10 @@ struct DebugWindows
 
     ~DebugWindows()
     {
-        delete foregroundLabel;
-        delete skinLabel;
-        delete foregroundWindow;
-        delete skinWindow;
+        foregroundLabel->deleteLater();
+        skinLabel->deleteLater();
+        foregroundWindow->deleteLater();
+        skinWindow->deleteLater();
     }
 
     QWidget* foregroundWindow;
