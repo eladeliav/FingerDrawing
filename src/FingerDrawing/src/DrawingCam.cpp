@@ -183,6 +183,8 @@ Mat DrawingCam::getNextFrame(bool shouldFlip, Mat debugFrames[])
     if (!cam.isOpened())
         return Mat();
     cam >> frame;
+    if(frame.empty())
+        return frame;
     if (shouldFlip)
         flip(frame, frame, 1);
     roi = frame(region_of_interest);
@@ -287,7 +289,7 @@ void DrawingCam::calibrateBackground()
 void DrawingCam::resetCanvas(bool send)
 {
     canvas = eraserColor;
-    if(textToShow.front() != WAITING_MSG)
+    if(!textToShow.empty() && textToShow.front() != WAITING_MSG)
         textToShow.clear();
     if (send)
         sendPoint({-1, -1, -1, BLUE});

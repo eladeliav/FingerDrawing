@@ -7,7 +7,15 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
     cam = new DrawingCam(0, DEF_IP, DEFAULT_PORT);
+    Mat debugFrames[2];
+    Mat current;
+    current = this->cam->getNextFrame(this->shouldFlip, debugFrames);
+    this->setFixedSize(current.cols * 3, current.rows * 3);
     this->debugWindows = new DebugWindows(new QWidget, new QWidget);
+    this->debugWindows->foregroundLabel->setScaledContents( true );
+    this->debugWindows->foregroundLabel->setSizePolicy( QSizePolicy::Ignored, QSizePolicy::Ignored );
+    this->debugWindows->skinLabel->setScaledContents( true );
+    this->debugWindows->skinLabel->setSizePolicy( QSizePolicy::Ignored, QSizePolicy::Ignored );
     auto timer = new QTimer(parent);
     connect(timer, &QTimer::timeout, this, [&]
     {
@@ -31,12 +39,6 @@ void MainWindow::mainLoop()
     Mat current, foreground, skinMask;
     Mat debugFrames[2];
     current = this->cam->getNextFrame(this->shouldFlip, debugFrames);
-    this->ui->img_label->setScaledContents( true );
-    this->ui->img_label->setSizePolicy( QSizePolicy::Ignored, QSizePolicy::Ignored );
-    this->debugWindows->foregroundLabel->setScaledContents( true );
-    this->debugWindows->foregroundLabel->setSizePolicy( QSizePolicy::Ignored, QSizePolicy::Ignored );
-    this->debugWindows->skinLabel->setScaledContents( true );
-    this->debugWindows->skinLabel->setSizePolicy( QSizePolicy::Ignored, QSizePolicy::Ignored );
     while(this->cam && this->ui && this->debugWindows && !done)
     {
         current = this->cam->getNextFrame(this->shouldFlip, debugFrames);
