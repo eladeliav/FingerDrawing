@@ -159,11 +159,11 @@ void ConnectionManager::disconnect()
 {
     try
     {
+        waitingForPlayers = true;
         rockSock.close();
         pointsSock.close();
         pointsConnected = false;
         rockConnected = false;
-        waitingForPlayers = true;
     }catch(UniSocketException& e)
     {
         std::cout << e << std::endl;

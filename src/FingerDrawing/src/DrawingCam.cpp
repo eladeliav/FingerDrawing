@@ -201,6 +201,8 @@ Mat DrawingCam::getNextFrame(bool shouldFlip, Mat debugFrames[])
     Mat displayCanvas;
 
     foreground = foregroundExtractor.extractForeground(roi);
+    if(foreground.empty())
+        return Mat();
 
     if (!skinDetector.sampled)
     {

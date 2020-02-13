@@ -6,7 +6,7 @@
 
 ForegroundExtractor::ForegroundExtractor()
 {
-
+    background = nullptr;
 }
 
 void ForegroundExtractor::calibrate(Mat frame)
@@ -18,6 +18,8 @@ void ForegroundExtractor::calibrate(Mat frame)
 Mat ForegroundExtractor::extractForeground(Mat frame)
 {
     Mat mask, foreground;
+    if(!background)
+        return Mat();
     background->apply(frame, mask, 0);
 
     //TODO: do some eroding/dilating as needed
