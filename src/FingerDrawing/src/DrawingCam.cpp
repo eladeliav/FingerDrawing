@@ -224,7 +224,7 @@ Mat DrawingCam::getNextFrame(bool shouldFlip, Mat debugFrames[])
         if(fingerNum == 0)
         {
             shape = ROCK;
-        }else if(fingerNum == 1)
+        }else if(fingerNum == 1 || fingerNum > 2)
         {
             shape = PAPER;
         }
