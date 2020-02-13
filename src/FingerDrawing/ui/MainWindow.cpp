@@ -10,7 +10,7 @@ MainWindow::MainWindow(QWidget *parent) :
     Mat debugFrames[2];
     Mat current;
     current = this->cam->getNextFrame(this->shouldFlip, debugFrames);
-    this->setFixedSize(current.cols * 3, current.rows * 3);
+    this->setFixedSize(current.cols * 1.5, current.rows + 20);
     this->debugWindows = new DebugWindows(new QWidget, new QWidget);
     this->debugWindows->foregroundLabel->setScaledContents( true );
     this->debugWindows->foregroundLabel->setSizePolicy( QSizePolicy::Ignored, QSizePolicy::Ignored );
@@ -152,32 +152,22 @@ void MainWindow::on_disconnect_btn_clicked()
     this->ui->disconnect_btn->setEnabled(false);
 }
 
-void MainWindow::setRadio(int index)
-{
-    const auto checkList = this->ui->color_box->findChildren<QRadioButton*>();
-    checkList[index]->setChecked(true);
-}
-
 void MainWindow::on_ared_radio_clicked()
 {
-    setRadio(0);
     this->cam->setColor(RED);
 }
 
 void MainWindow::on_bblue_radio_clicked()
 {
-    setRadio(1);
     this->cam->setColor(GREEN);
 }
 
 void MainWindow::on_cgreen_radio_clicked()
 {
-    setRadio(2);
     this->cam->setColor(BLUE);
 }
 
 void MainWindow::on_deraser_radio_clicked()
 {
-    setRadio(3);
     this->cam->setColor(ERASER);
 }

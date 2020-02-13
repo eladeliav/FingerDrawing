@@ -89,7 +89,6 @@ private:
     bool showDebug = false;
     bool done = false;
     void keyPressEvent(QKeyEvent* event) override;
-    void setRadio(int index);
 };
 
 #endif // MAINWINDOW_H
