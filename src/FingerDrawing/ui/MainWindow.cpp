@@ -8,7 +8,13 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
     cam = new DrawingCam(0, DEF_IP, DEFAULT_PORT);
     this->debugWindows = new DebugWindows(new QWidget, new QWidget);
-
+    auto timer = new QTimer(parent);
+    connect(timer, &QTimer::timeout, this, [&]
+    {
+        if(!this->cam->connected())
+            this->on_disconnect_btn_clicked();
+    });
+    timer->start();
     std::thread mainLoopThread(&MainWindow::mainLoop, this);
     mainLoopThread.detach();
 }
@@ -43,9 +49,6 @@ void MainWindow::mainLoop()
         cvtColor(current, current,COLOR_BGR2RGB);
         cvtColor(foreground, foreground,COLOR_BGR2RGB);
         cvtColor(skinMask, skinMask, COLOR_BGR2RGB);
-
-        if(!this->cam->connected())
-            this->on_disconnect_btn_clicked();
         
         if(done)
             break;

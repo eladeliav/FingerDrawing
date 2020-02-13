@@ -87,7 +87,8 @@ DrawPoint ConnectionManager::getPoint()
             {
                 std::cout << e.what() << std::endl;
             }
-        }
+        } else
+            disconnect();
     }catch(UniSocketException& e)
     {
         if(e.getErrorType() != UniSocketException::TIMED_OUT)

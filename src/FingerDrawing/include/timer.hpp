@@ -26,7 +26,7 @@ class Timer {
             });
             t.detach();
         }
-        void setInterval(FunctionPointer function, int interval, T* th)
+        void setInterval(void(*function)(T*) , int interval, T* th)
         {
             this->clear = false;
             std::thread t([=]() {
@@ -34,7 +34,10 @@ class Timer {
                     if(this->clear) return;
                     std::this_thread::sleep_for(std::chrono::milliseconds(interval));
                     if(this->clear) return;
-                    (th->*function)();
+                    if(th)
+                        function(th);
+                    else
+                        function(nullptr);
                 }
             });
             t.detach();

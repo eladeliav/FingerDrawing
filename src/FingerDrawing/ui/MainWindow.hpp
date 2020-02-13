@@ -9,6 +9,7 @@
 #include <thread>
 #include <QtWidgets/QLabel>
 #include <QButtonGroup>
+#include <QTimer>
 #include "include/DrawingCam.hpp"
 
 using std::string;
