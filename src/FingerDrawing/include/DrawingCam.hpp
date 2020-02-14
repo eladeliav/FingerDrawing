@@ -77,6 +77,12 @@ public:
 
     void setColor(Color color);
 
+    void setSize(int size);
+
+    void incSize();
+
+    void decSize();
+
     bool tryConnect(string ip, int port);
 
     void disconnect();

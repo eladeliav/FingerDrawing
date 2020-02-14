@@ -163,25 +163,6 @@
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="show_debug_btn">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>16777215</width>
-           <height>30</height>
-          </size>
-         </property>
-         <property name="text">
-          <string>Show Debug</string>
-         </property>
-        </widget>
-       </item>
-       <item>
         <widget class="QLabel" name="ip_label">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
@@ -312,6 +293,12 @@
            <height>30</height>
           </size>
          </property>
+         <property name="minimum">
+          <number>5</number>
+         </property>
+         <property name="maximum">
+          <number>20</number>
+         </property>
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
          </property>
@@ -332,7 +319,7 @@
           </size>
          </property>
          <property name="text">
-          <string>1 - Red, 2 - Blue, 3 - Green, 4 - Eraser</string>
+          <string>1 - Red, 2 - Green, 3 - Blue, 4 - Eraser</string>
          </property>
         </widget>
        </item>

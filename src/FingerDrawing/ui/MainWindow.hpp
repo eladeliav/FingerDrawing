@@ -60,6 +60,8 @@ private slots:
 
     void mainLoop();
 
+    void on_size_slider_valueChanged(int value);
+
 private:
     Ui::MainWindow *ui;
     DrawingCam *cam;

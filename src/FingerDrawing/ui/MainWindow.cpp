@@ -101,6 +101,10 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
         QCoreApplication::exit(0);
     } else if (event->key() == Qt::Key_T)
         this->cam->toggleMode();
+    else if(event->key() == Qt::Key_Equal)
+        this->cam->incSize();
+    else if(event->key() == Qt::Key_Minus)
+        this->cam->decSize();
 
 }
 
@@ -152,4 +156,9 @@ void MainWindow::green()
 void MainWindow::eraser()
 {
     this->cam->setColor(ERASER);
+}
+
+void MainWindow::on_size_slider_valueChanged(int value)
+{
+    this->cam->setSize(value);
 }

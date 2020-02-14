@@ -333,3 +333,22 @@ bool DrawingCam::connected()
 {
     return connectionManager.connected();
 }
+
+void DrawingCam::setSize(int size)
+{
+    if(size < 5 || size > 20)
+        return;
+    this->brushSize = size;
+}
+
+void DrawingCam::incSize()
+{
+    if(brushSize + 1 <= 20)
+        brushSize++;
+}
+
+void DrawingCam::decSize()
+{
+    if(brushSize -1 >= 5)
+        brushSize--;
+}
