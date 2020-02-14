@@ -2,64 +2,49 @@
 #include "ui_mainwindow.h"
 
 MainWindow::MainWindow(QWidget *parent) :
-    QMainWindow(parent),
-    ui(new Ui::MainWindow)
+        QMainWindow(parent),
+        ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
     cam = new DrawingCam(0, DEF_IP, DEFAULT_PORT);
-    Mat debugFrames[2];
-    Mat current;
-    current = this->cam->getNextFrame(this->shouldFlip, debugFrames);
-    this->setFixedSize(current.cols * 1.5, current.rows + 20);
-    this->debugWindows = new DebugWindows(new QWidget, new QWidget);
-    this->debugWindows->foregroundLabel->setScaledContents( true );
-    this->debugWindows->foregroundLabel->setSizePolicy( QSizePolicy::Ignored, QSizePolicy::Ignored );
-    this->debugWindows->skinLabel->setScaledContents( true );
-    this->debugWindows->skinLabel->setSizePolicy( QSizePolicy::Ignored, QSizePolicy::Ignored );
-    auto timer = new QTimer(parent);
-    connect(timer, &QTimer::timeout, this, [&]
-    {
-        if(!this->cam->connected())
-            this->on_disconnect_btn_clicked();
-    });
-    timer->start();
-    std::thread mainLoopThread(&MainWindow::mainLoop, this);
-    mainLoopThread.detach();
+    frame = this->cam->getNextFrame(this->shouldFlip);
+    this->setFixedSize(frame.cols * 1.5, frame.rows + 20);
+    updateTimer = new QTimer(this);
+    connect(updateTimer, SIGNAL(timeout()), this, SLOT(mainLoop()));
+    updateTimer->start(20);
+//    std::thread mainLoopThread(&MainWindow::mainLoop, this);
+//    mainLoopThread.detach();
 }
 
 MainWindow::~MainWindow()
 {
-    delete ui;
     delete cam;
-    delete debugWindows;
+    delete updateTimer;
+    UniSocket::cleanup();
+    delete ui;
 }
 
 void MainWindow::mainLoop()
 {
-    Mat current, foreground, skinMask;
-    Mat debugFrames[2];
-    current = this->cam->getNextFrame(this->shouldFlip, debugFrames);
-    while(this->cam && this->ui && this->debugWindows && !done)
-    {
-        current = this->cam->getNextFrame(this->shouldFlip, debugFrames);
-        foreground = debugFrames[0];
-        skinMask = debugFrames[1];
+    if(done)
+        return;
 
-        if(current.empty())
-            break;
+    if (!this->cam->connected())
+        this->on_disconnect_btn_clicked();
 
-        cvtColor(current, current,COLOR_BGR2RGB);
-        cvtColor(foreground, foreground,COLOR_BGR2RGB);
-        cvtColor(skinMask, skinMask, COLOR_BGR2RGB);
-        
-        if(done)
-            break;
+    frame = this->cam->getNextFrame(this->shouldFlip);
 
-        this->ui->img_label->setPixmap(QPixmap::fromImage(QImage(current.data, current.cols, current.rows, current.step, QImage::Format_RGB888)));
-        this->debugWindows->foregroundLabel->setPixmap(QPixmap::fromImage(QImage(foreground.data, foreground.cols, foreground.rows, foreground.step, QImage::Format_RGB888)));
-        this->debugWindows->skinLabel->setPixmap(QPixmap::fromImage(QImage(skinMask.data, skinMask.cols, skinMask.rows, skinMask.step, QImage::Format_RGB888)));
-    }
-    UniSocket::cleanup();
+    if (frame.empty())
+        return;
+
+    cvtColor(frame, frame, COLOR_BGR2RGB);
+
+    if (done)
+        return;
+
+    qt_image = QImage((const unsigned char*)frame.data, frame.cols, frame.rows, frame.step, QImage::Format_RGB888);
+
+    this->ui->img_label->setPixmap(QPixmap::fromImage(qt_image));
 }
 
 void MainWindow::on_sample_btn_clicked()
@@ -92,30 +77,29 @@ void MainWindow::on_flip_btn_clicked()
     this->shouldFlip = !this->shouldFlip;
 }
 
-void MainWindow::keyPressEvent(QKeyEvent* event)
+void MainWindow::keyPressEvent(QKeyEvent *event)
 {
-    if(event->key() == Qt::Key_C)
+    if (event->key() == Qt::Key_C)
         this->on_calibrate_bg_btn_clicked();
-    else if(event->key() == Qt::Key_R)
+    else if (event->key() == Qt::Key_R)
         this->on_reset_canvas_btn_clicked();
-    else if(event->key() == Qt::Key_S)
+    else if (event->key() == Qt::Key_S)
         this->on_sample_btn_clicked();
-    else if(event->key() == Qt::Key_X)
+    else if (event->key() == Qt::Key_X)
         this->on_reset_sample_btn_clicked();
-    else if(event->key() == Qt::Key_1)
+    else if (event->key() == Qt::Key_1)
         this->red();
-    else if(event->key() == Qt::Key_2)
+    else if (event->key() == Qt::Key_2)
         this->blue();
-    else if(event->key() == Qt::Key_3)
+    else if (event->key() == Qt::Key_3)
         this->green();
-    else if(event->key() == Qt::Key_4)
+    else if (event->key() == Qt::Key_4)
         this->eraser();
-    else if(event->key() == Qt::Key_Escape)
+    else if (event->key() == Qt::Key_Escape)
     {
         this->done = true;
         QCoreApplication::exit(0);
-    }
-    else if(event->key() == Qt::Key_T)
+    } else if (event->key() == Qt::Key_T)
         this->cam->toggleMode();
 
 }
@@ -124,8 +108,6 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
 void MainWindow::on_show_debug_btn_clicked()
 {
     this->showDebug = !this->showDebug;
-    this->debugWindows->foregroundWindow->setVisible(!this->debugWindows->foregroundWindow->isVisible());
-    this->debugWindows->skinWindow->setVisible(!this->debugWindows->skinWindow->isVisible());
 }
 
 
@@ -133,12 +115,12 @@ void MainWindow::on_connect_btn_clicked()
 {
     string ip = this->ui->ip_input->text().toStdString();
     int port = this->ui->port_input->text().toInt();
-    if(port == 0)
+    if (port == 0)
     {
         std::cout << "Invalid Port" << std::endl;
         return;
     }
-    if(this->cam->tryConnect(ip, port))
+    if (this->cam->tryConnect(ip, port))
     {
         this->ui->connect_btn->setEnabled(false);
         this->ui->disconnect_btn->setEnabled(true);

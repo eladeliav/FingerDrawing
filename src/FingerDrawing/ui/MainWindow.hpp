@@ -10,6 +10,7 @@
 #include <QtWidgets/QLabel>
 #include <QButtonGroup>
 #include <QTimer>
+#include <QThread>
 #include "include/DrawingCam.hpp"
 
 using std::string;
@@ -17,46 +18,22 @@ using std::string;
 #define DEF_IP "172.16.1.127"
 #define DEFAULT_PORT 1234
 
-struct DebugWindows
+namespace Ui
 {
-    DebugWindows(QWidget *foregroundWindow, QWidget *skinWindow) : foregroundWindow(foregroundWindow),
-                                                                   skinWindow(skinWindow)
-    {
-        foregroundLabel = new QLabel(foregroundWindow);
-        skinLabel = new QLabel(skinWindow);
-        foregroundLabel->setScaledContents( true );
-        foregroundLabel->setSizePolicy( QSizePolicy::Ignored, QSizePolicy::Ignored );
-        skinLabel->setScaledContents( true );
-        skinLabel->setSizePolicy( QSizePolicy::Ignored, QSizePolicy::Ignored );
-    }
-
-    ~DebugWindows()
-    {
-        foregroundLabel->deleteLater();
-        skinLabel->deleteLater();
-        foregroundWindow->deleteLater();
-        skinWindow->deleteLater();
-    }
-
-    QWidget* foregroundWindow;
-    QLabel* foregroundLabel;
-    QWidget* skinWindow;
-    QLabel* skinLabel;
-};
-
-namespace Ui {
-class MainWindow;
+    class MainWindow;
 }
 
 class MainWindow : public QMainWindow
 {
-    Q_OBJECT
+Q_OBJECT
 
 public:
-    explicit MainWindow(QWidget *parent = nullptr);
+    explicit MainWindow(QWidget *parent = 0);
+
     ~MainWindow() override;
-    void mainLoop();
+
 private slots:
+
     void on_sample_btn_clicked();
 
     void on_reset_sample_btn_clicked();
@@ -81,14 +58,19 @@ private slots:
 
     void eraser();
 
+    void mainLoop();
+
 private:
     Ui::MainWindow *ui;
-    DrawingCam* cam;
-    DebugWindows* debugWindows;
+    DrawingCam *cam;
+    QTimer *updateTimer;
+    Mat frame;
+    QImage qt_image;
     bool shouldFlip = true;
     bool showDebug = false;
     bool done = false;
-    void keyPressEvent(QKeyEvent* event) override;
+
+    void keyPressEvent(QKeyEvent *event) override;
 };
 
 #endif // MAINWINDOW_H

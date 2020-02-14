@@ -65,7 +65,7 @@ public:
 
     ~DrawingCam();
 
-    Mat getNextFrame(bool shouldFlip, Mat debugFrames[]);
+    Mat getNextFrame(bool shouldFlip);
 
     void sampleSkinColor();
 

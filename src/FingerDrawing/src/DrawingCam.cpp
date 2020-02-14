@@ -55,7 +55,8 @@ void DrawingCam::getPoints()
         DrawPoint p = connectionManager.getPoint();
         if(!connectionManager.connected())
         {
-            disconnect();
+            textToShow.clear();
+            textToShow.push_back("Disconnected");
             return;
         }
         if (p.toggle)
@@ -144,10 +145,10 @@ DrawingCam::~DrawingCam()
     cam.release();
 }
 
-Mat DrawingCam::getNextFrame(bool shouldFlip, Mat debugFrames[])
+Mat DrawingCam::getNextFrame(bool shouldFlip)
 {
     if (!cam.isOpened())
-        return Mat();
+        return frame;
     cam >> frame;
     if(frame.empty())
         return frame;
@@ -168,7 +169,7 @@ Mat DrawingCam::getNextFrame(bool shouldFlip, Mat debugFrames[])
 
     foreground = foregroundExtractor.extractForeground(roi);
     if(foreground.empty())
-        return Mat();
+        return frame;
 
     if (!skinDetector.sampled)
     {
@@ -232,10 +233,6 @@ Mat DrawingCam::getNextFrame(bool shouldFlip, Mat debugFrames[])
         finishedCountdown = false;
         drawingMode = true;
     }
-
-
-    debugFrames[0] = Mat(foreground);
-    debugFrames[1] = Mat(skinMask);
     return frame;
 }
 
