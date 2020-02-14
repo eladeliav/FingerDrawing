@@ -253,6 +253,8 @@ void DrawingCam::calibrateBackground()
 
 void DrawingCam::resetCanvas(bool send)
 {
+    if(finishedCountdown)
+        return;
     canvas = eraserColor;
     if(!textToShow.empty() && textToShow.front() != WAITING_MSG)
         textToShow.clear();
