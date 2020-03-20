@@ -87,7 +87,8 @@ DrawPoint ConnectionManager::getPoint()
             {
                 std::cout << e.what() << std::endl;
             }
-        }
+        } else
+            disconnect();
     }catch(UniSocketException& e)
     {
         if(e.getErrorType() != UniSocketException::TIMED_OUT)
@@ -158,6 +159,7 @@ void ConnectionManager::disconnect()
 {
     try
     {
+        waitingForPlayers = true;
         rockSock.close();
         pointsSock.close();
         pointsConnected = false;

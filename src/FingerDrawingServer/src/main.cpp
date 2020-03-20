@@ -119,7 +119,7 @@ void forwardMessages(Client &c, Client &o, bool &exitFlag)
                     {
 
                     }
-
+                    std::cout << "Closing Pair" << std::endl;
                     return;
                 }
             }

@@ -3,40 +3,6 @@
 //
 #include "../include/DrawingCam.hpp"
 
-template<typename T>
-T CLAMP(const T &value, const T &low = 0, const T &high = 255)
-{
-    return value < low ? low : (value > high ? high : value);
-}
-
-void overlayImage(Mat *src, Mat *overlay, const Point &location = Point(0, 0))
-{
-    for (int y = max(location.y, 0); y < src->rows; ++y)
-    {
-        int fY = y - location.y;
-
-        if (fY >= overlay->rows)
-            break;
-
-        for (int x = max(location.x, 0); x < src->cols; ++x)
-        {
-            int fX = x - location.x;
-
-            if (fX >= overlay->cols)
-                break;
-
-            double opacity = ((double) overlay->data[fY * overlay->step + fX * overlay->channels() + 3]) / 255;
-
-            for (int c = 0; opacity > 0 && c < src->channels(); ++c)
-            {
-                unsigned char overlayPx = overlay->data[fY * overlay->step + fX * overlay->channels() + c];
-                unsigned char srcPx = src->data[y * src->step + x * src->channels() + c];
-                src->data[y * src->step + src->channels() * x + c] = srcPx * (1. - opacity) + overlayPx * opacity;
-            }
-        }
-    }
-}
-
 DrawingCam::DrawingCam(int id, string ip, int port)
 {
     cam_id = id;
@@ -75,7 +41,7 @@ DrawingCam::DrawingCam(int id, string ip, int port)
 
 void DrawingCam::sendPoint(const DrawPoint &p)
 {
-    if(!connectionManager.waiting() && drawingMode && !finishedCountdown)
+    if (!connectionManager.waiting() && drawingMode && !finishedCountdown)
     {
         std::cout << "ABOUT TO SEND POINT" << std::endl;
         connectionManager.sendPoint(p);
@@ -84,14 +50,20 @@ void DrawingCam::sendPoint(const DrawPoint &p)
 
 void DrawingCam::getPoints()
 {
-    while(connectionManager.connected())
+    while (connectionManager.connected())
     {
         DrawPoint p = connectionManager.getPoint();
-        if(p.toggle)
+        if(!connectionManager.connected())
+        {
+            textToShow.clear();
+            textToShow.push_back("Disconnected");
+            return;
+        }
+        if (p.toggle)
             toggleMode(false);
-        if(!drawingMode)
+        if (!drawingMode)
             continue;
-        if(p.x == -1 && p.y == -1)
+        if (p.x == -1 && p.y == -1)
             canvas = eraserColor;
         else
             cv::circle(canvas, Point(p.x, p.y), p.size, COLOR_TO_SCALAR.at(p.color), FILLED);
@@ -173,19 +145,21 @@ DrawingCam::~DrawingCam()
     cam.release();
 }
 
-Mat DrawingCam::getNextFrame(bool shouldFlip, Mat debugFrames[])
+Mat DrawingCam::getNextFrame(bool shouldFlip)
 {
-    if(!cam.isOpened())
-        return Mat();
+    if (!cam.isOpened())
+        return frame;
     cam >> frame;
-    if(shouldFlip)
+    if(frame.empty())
+        return frame;
+    if (shouldFlip)
         flip(frame, frame, 1);
     roi = frame(region_of_interest);
 
     rectangle(frame, region_of_interest, Scalar(255, 0, 0));
 
     int y = 40;
-    for(const auto& s : textToShow)
+    for (const auto &s : textToShow)
     {
         putText(frame, s, Point(0, y),
                 FONT_HERSHEY_SIMPLEX, 1, Scalar(0, 0, 255, 255));
@@ -194,14 +168,15 @@ Mat DrawingCam::getNextFrame(bool shouldFlip, Mat debugFrames[])
     Mat displayCanvas;
 
     foreground = foregroundExtractor.extractForeground(roi);
+    if(foreground.empty())
+        return frame;
 
-    if(!skinDetector.sampled)
+    if (!skinDetector.sampled)
     {
         skinDetector.drawSampler(roi);
         skinMask = Mat(roi.size(), CV_8UC1);
         skinMask = eraserColor;
-    }
-    else
+    } else
         skinMask = skinDetector.genMask(foreground);
 
 
@@ -209,26 +184,24 @@ Mat DrawingCam::getNextFrame(bool shouldFlip, Mat debugFrames[])
     displayCanvas = canvas.clone();
     fingerPoints = FingersDetector::countFingers(skinMask, vector<Mat *>{&displayCanvas, &roi});
 
-    if(drawingMode)
+    if (drawingMode)
     {
         draw();
         Mat transparent;
         cv::inRange(canvas, ERASER_SCALAR, ERASER_SCALAR, transparent);
         canvas.copyTo(roi, 255 - transparent);
-    }
-    else if(finishedCountdown)
+    } else if (finishedCountdown)
     {
         int fingerNum = fingerPoints.size();
         std::cout << "FingerNum: " << fingerNum << std::endl;
         HandShape shape = INVALID;
-        if(fingerNum == 0)
+        if (fingerNum == 0)
         {
             shape = ROCK;
         }else if(fingerNum == 1 || fingerNum > 2)
         {
             shape = PAPER;
-        }
-        else if(fingerNum == 2)
+        } else if (fingerNum == 2)
         {
             shape = SCISSORS;
         }
@@ -238,33 +211,28 @@ Mat DrawingCam::getNextFrame(bool shouldFlip, Mat debugFrames[])
         HandShape otherShape = connectionManager.getHandShape();
         std::string otherShapeStr = SHAPE_TO_STRING.at(otherShape);
         textToShow.push_back("Opponent played: " + otherShapeStr);
-        for(const auto& p : SHAPE_TO_STRING)
+        for (const auto &p : SHAPE_TO_STRING)
         {
-            if(p.second == otherShapeStr)
+            if (p.second == otherShapeStr)
                 otherShape = p.first;
         }
-        if(otherShape == ROCK && shape == PAPER)
+        if (otherShape == ROCK && shape == PAPER)
             textToShow.push_back("You Win!");
-        else if(otherShape == ROCK && shape == SCISSORS)
+        else if (otherShape == ROCK && shape == SCISSORS)
             textToShow.push_back("You Lose!");
-        else if(otherShape == PAPER && shape == ROCK)
+        else if (otherShape == PAPER && shape == ROCK)
             textToShow.push_back("You Lose!");
-        else if(otherShape == PAPER && shape == SCISSORS)
+        else if (otherShape == PAPER && shape == SCISSORS)
             textToShow.push_back("You Win!");
-        else if(otherShape == SCISSORS && shape == ROCK)
+        else if (otherShape == SCISSORS && shape == ROCK)
             textToShow.push_back("You Win!");
-        else if(otherShape == SCISSORS && shape == PAPER)
+        else if (otherShape == SCISSORS && shape == PAPER)
             textToShow.push_back("You Lose!");
         else
             textToShow.push_back("Draw!");
         finishedCountdown = false;
         drawingMode = true;
     }
-
-
-
-    debugFrames[0] = Mat(foreground);
-    debugFrames[1] = Mat(skinMask);
     return frame;
 }
 
@@ -285,27 +253,47 @@ void DrawingCam::calibrateBackground()
 
 void DrawingCam::resetCanvas(bool send)
 {
+    if(finishedCountdown || !drawingMode)
+        return;
     canvas = eraserColor;
-    textToShow.clear();
-    if(send)
+    if(!textToShow.empty() && textToShow.front() != WAITING_MSG)
+        textToShow.clear();
+    if (send)
         sendPoint({-1, -1, -1, BLUE});
 }
 
 bool DrawingCam::tryConnect(string ip, int port)
 {
     bool s = connectionManager.tryConnect(ip, port);
-    if(s)
+    textToShow.clear();
+    if (s)
     {
         thread getPointsThread(&DrawingCam::getPoints, this);
         getPointsThread.detach();
-    }
+        textToShow.push_back(WAITING_MSG);
+        timer.setInterval([](DrawingCam *c)
+                      {
+                          if(!c->connectionManager.waiting())
+                          {
+                              c->textToShow.front() = "Partner Connected!";
+                              c->timer.stop();
+                          }
+                      }, 1000, this);
+    } else
+        textToShow.push_back("Failed to Connect");
+
     return s;
 }
 
 void DrawingCam::disconnect()
 {
-    if(connected())
+    if (connected())
+    {
+        textToShow.clear();
+        textToShow.push_back("Disconnected");
         connectionManager.disconnect();
+    }
+
 }
 
 void DrawingCam::setColor(Color color)
@@ -316,33 +304,51 @@ void DrawingCam::setColor(Color color)
 
 void DrawingCam::toggleMode(bool send)
 {
-    if(connectionManager.waiting())
+    if (connectionManager.waiting())
         return;
     this->drawingMode = false;
     resetCanvas(false);
-    if(send)
+    if (send)
         connectionManager.sendToggle();
     textToShow.clear();
     textToShow.push_back("Get Ready");
     textToShow.push_back(std::to_string(countdown));
-    timer.setInterval(&DrawingCam::rockPaperCountdown, 1000, this);
+    timer.setInterval([](DrawingCam *c)
+                      {
+                          std::cout << "Countdown: " << c->countdown << std::endl;
+                          c->textToShow.back() = std::to_string(c->countdown);
+                          c->countdown--;
+                          if (c->countdown == -1)
+                          {
+                              c->countdown = 5;
+                              c->finishedCountdown = true;
+                              c->textToShow.clear();
+                              c->timer.stop();
+                          }
+                      }, 1000, this);
 }
 
-void DrawingCam::rockPaperCountdown()
-{
-    std::cout << "Countdown: " << countdown << std::endl;
-    textToShow.back() = std::to_string(countdown);
-    countdown--;
-    if (countdown == -1)
-    {
-        countdown = 5;
-        finishedCountdown = true;
-        textToShow.clear();
-        timer.stop();
-    }
-}
 
 bool DrawingCam::connected()
 {
     return connectionManager.connected();
+}
+
+void DrawingCam::setSize(int size)
+{
+    if(size < 5 || size > 20)
+        return;
+    this->brushSize = size;
+}
+
+void DrawingCam::incSize()
+{
+    if(brushSize + 1 <= 20)
+        brushSize++;
+}
+
+void DrawingCam::decSize()
+{
+    if(brushSize -1 >= 5)
+        brushSize--;
 }

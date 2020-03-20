@@ -20,6 +20,7 @@
 #include <map>
 
 #define WINDOW_NAME "Frame"
+#define WAITING_MSG "Connected! Waiting for Partner..."
 
 using std::vector;
 using std::thread;
@@ -56,22 +57,38 @@ private:
     void draw();
 
     void sendPoint(const DrawPoint &p);
+
     void getPoints();
-    void rockPaperCountdown();
 
 public:
-    DrawingCam(int id = 0, string ip="127.0.0.1", int port=1234);
+    DrawingCam(int id = 0, string ip = "127.0.0.1", int port = 1234);
+
     ~DrawingCam();
-    void start();
-    Mat getNextFrame(bool shouldFlip, Mat debugFrames[]);
+
+    Mat getNextFrame(bool shouldFlip);
+
     void sampleSkinColor();
+
     void resetSkinColor();
+
     void calibrateBackground();
-    void resetCanvas(bool send=true);
+
+    void resetCanvas(bool send = true);
+
     void setColor(Color color);
+
+    void setSize(int size);
+
+    void incSize();
+
+    void decSize();
+
     bool tryConnect(string ip, int port);
+
     void disconnect();
-    void toggleMode(bool send=true);
+
+    void toggleMode(bool send = true);
+
     bool connected();
 };
 
