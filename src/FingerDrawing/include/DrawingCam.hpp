@@ -19,9 +19,10 @@
 #include <string>
 #include <map>
 
-#define WINDOW_NAME "Frame"
+// Constant for waiting for partner message
 #define WAITING_MSG "Connected! Waiting for Partner..."
 
+// using command...
 using std::vector;
 using std::thread;
 using std::string;
@@ -29,66 +30,81 @@ using std::string;
 class DrawingCam
 {
 private:
-    int cam_id;
-    cv::VideoCapture cam;
-    string _ip;
-    int _port = -1;
+    int cam_id; // camera port id
+    cv::VideoCapture cam; // Cam object
+    string _ip; // the ip
+    int _port = -1; // the port
 
-    Rect region_of_interest;
-    cv::Mat frame, canvas, foreground, skinMask, roi;
+    Rect region_of_interest; // region of interest
+    cv::Mat frame, canvas, foreground, skinMask, roi; // various frames
 
-    cv::Point currentPointerPos;
-    cv::Scalar brushColor, eraserColor;
-    Color currentColor = BLUE;
-    int brushSize;
+    cv::Point currentPointerPos; // current position of mouse
+    cv::Scalar brushColor, eraserColor;  // brush and eraser color
+    Color currentColor = BLUE; // current brush color
+    int brushSize; // brush size
 
-    vector<cv::Point> fingerPoints;
-    vector<std::string> textToShow;
+    vector<cv::Point> fingerPoints; // vector of points where fingers were detected
+    vector<std::string> textToShow; // text to display top left
 
-    ForegroundExtractor foregroundExtractor;
-    SkinDetector skinDetector;
+    ForegroundExtractor foregroundExtractor; // foreground extractor object
+    SkinDetector skinDetector; // skin detector
 
-    ConnectionManager connectionManager;
-    bool drawingMode = true;
-    Timer<DrawingCam> timer = Timer<DrawingCam>();
-    int countdown = 5;
-    bool finishedCountdown = false;
+    ConnectionManager connectionManager; // connection manager
+    bool drawingMode = true; // current mode
+    Timer<DrawingCam> timer = Timer<DrawingCam>(); // Timer object
+    int countdown = 5; // countdown for rock paper scissors
+    bool finishedCountdown = false; // whether or not the countdown is finished
 
-    void draw();
+    void draw(); // draws at current color, size and mouse pointer
 
-    void sendPoint(const DrawPoint &p);
+    void sendPoint(const DrawPoint &p); // sends point to server
 
-    void getPoints();
+    void getPoints(); // gets point loop
 
 public:
+    // constructor
     DrawingCam(int id = 0, string ip = "127.0.0.1", int port = 1234);
 
+    // destructor
     ~DrawingCam();
 
+    // calculates next frame details
     Mat getNextFrame(bool shouldFlip);
 
+    // samples skin color of user and saves it
     void sampleSkinColor();
 
+    // resets previously sampled skin color
     void resetSkinColor();
 
+    // calibrates backgound
     void calibrateBackground();
 
+    // resets drawings on canvas
     void resetCanvas(bool send = true);
 
+    // Sets brush color
     void setColor(Color color);
 
+    // Sets brush size
     void setSize(int size);
 
+    // increments brush size by 1
     void incSize();
 
+    // decrements size by 1
     void decSize();
 
+    // tries to connect to server
     bool tryConnect(string ip, int port);
 
+    // disconnects
     void disconnect();
 
+    // toggles drawing mode
     void toggleMode(bool send = true);
 
+    // checks if connected
     bool connected();
 };
 

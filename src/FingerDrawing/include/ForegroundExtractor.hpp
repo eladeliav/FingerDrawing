@@ -4,12 +4,12 @@
 
 #ifndef FINGERDRAWING_FOREGROUNDEXTRACTOR_HPP
 #define FINGERDRAWING_FOREGROUNDEXTRACTOR_HPP
-
 #include <opencv2/core.hpp>
 #include <opencv2/video.hpp>
 
 using namespace cv;
 
+// Threshold for
 #define THRESHHOLD 50
 
 class ForegroundExtractor
