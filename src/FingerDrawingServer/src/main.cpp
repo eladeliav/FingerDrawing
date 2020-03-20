@@ -144,7 +144,7 @@ int main(int argc, char **argv)
     LOG("Enter listening port..."); // receives listening port
     std::cin >> port;
 
-    UniServerSocket serverSocket(port, SOMAXCONN, TIMEOUT); // setup listneing socket
+    UniServerSocket serverSocket(port, SOMAXCONN, TIMEOUT); // setup listening socket
     LOG("Listening on port: " << port);
     // start listening for new pairs
     thread listenThread(listenForClients, std::ref(serverSocket), std::ref(exitFlag));
