@@ -4,17 +4,20 @@
 
 #include "../include/ForegroundExtractor.hpp"
 
+// constructor
 ForegroundExtractor::ForegroundExtractor()
 {
     background = nullptr;
 }
 
+// calibrates background
 void ForegroundExtractor::calibrate(Mat frame)
 {
     background = createBackgroundSubtractorMOG2(0, THRESHHOLD);
     calibrated = true;
 }
 
+// extracts foreground
 Mat ForegroundExtractor::extractForeground(Mat frame)
 {
     Mat mask, foreground;

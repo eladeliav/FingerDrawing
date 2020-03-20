@@ -1,21 +1,26 @@
 #include "MainWindow.hpp"
 #include "ui_mainwindow.h"
 
+// constructor
 MainWindow::MainWindow(QWidget *parent) :
         QMainWindow(parent),
         ui(new Ui::MainWindow)
 {
+    // sets up ui
     ui->setupUi(this);
+    // sets up drawing cam object
     cam = new DrawingCam(0, DEF_IP, DEFAULT_PORT);
-    frame = this->cam->getNextFrame(this->shouldFlip);
-    this->setFixedSize(frame.cols * 1.5, frame.rows + 20);
-    updateTimer = new QTimer(this);
+    frame = this->cam->getNextFrame(this->shouldFlip); // gets first frame for size setup
+    this->setFixedSize(frame.cols * 1.5, frame.rows + 20); // set size of frame
+    updateTimer = new QTimer(this); // timer for repeating functions
+    // do mainloop every 20 milliseconds
     connect(updateTimer, SIGNAL(timeout()), this, SLOT(mainLoop()));
     updateTimer->start(20);
 //    std::thread mainLoopThread(&MainWindow::mainLoop, this);
 //    mainLoopThread.detach();
 }
 
+// frees memory and disconnects winsock library (if on windows)
 MainWindow::~MainWindow()
 {
     delete cam;
@@ -26,27 +31,35 @@ MainWindow::~MainWindow()
 
 void MainWindow::mainLoop()
 {
+    // if done stop
     if(done)
         return;
 
+    // if not connected simulate disconnect click so that the ui button updates
     if (!this->cam->connected())
         this->on_disconnect_btn_clicked();
 
+    // gets frame
     frame = this->cam->getNextFrame(this->shouldFlip);
 
     if (frame.empty())
         return;
 
+    // converts to rgb from bgr
     cvtColor(frame, frame, COLOR_BGR2RGB);
 
+    // check done again
     if (done)
         return;
 
+    // conver to QImage format
     qt_image = QImage((const unsigned char*)frame.data, frame.cols, frame.rows, frame.step, QImage::Format_RGB888);
 
+    // display frame
     this->ui->img_label->setPixmap(QPixmap::fromImage(qt_image));
 }
 
+// button to sample skin color
 void MainWindow::on_sample_btn_clicked()
 {
     this->cam->sampleSkinColor();
@@ -54,6 +67,7 @@ void MainWindow::on_sample_btn_clicked()
     this->ui->reset_sample_btn->setEnabled(true);
 }
 
+// button to reset sampled skin color
 void MainWindow::on_reset_sample_btn_clicked()
 {
     this->cam->resetSkinColor();
@@ -61,22 +75,25 @@ void MainWindow::on_reset_sample_btn_clicked()
     this->ui->reset_sample_btn->setEnabled(false);
 }
 
+// calibrates background button
 void MainWindow::on_calibrate_bg_btn_clicked()
 {
     this->cam->calibrateBackground();
 }
 
+// resets canvas button
 void MainWindow::on_reset_canvas_btn_clicked()
 {
     this->cam->resetCanvas();
 }
 
-
+// flips frame
 void MainWindow::on_flip_btn_clicked()
 {
     this->shouldFlip = !this->shouldFlip;
 }
 
+// keyboard shortcuts for all buttons
 void MainWindow::keyPressEvent(QKeyEvent *event)
 {
     if (event->key() == Qt::Key_C)
@@ -109,12 +126,13 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
 }
 
 
+// deprecated show debug window
 void MainWindow::on_show_debug_btn_clicked()
 {
     this->showDebug = !this->showDebug;
 }
 
-
+// attempt to connect button
 void MainWindow::on_connect_btn_clicked()
 {
     string ip = this->ui->ip_input->text().toStdString();
@@ -131,6 +149,7 @@ void MainWindow::on_connect_btn_clicked()
     }
 }
 
+// disconnect button
 void MainWindow::on_disconnect_btn_clicked()
 {
     this->cam->disconnect();
@@ -138,6 +157,7 @@ void MainWindow::on_disconnect_btn_clicked()
     this->ui->disconnect_btn->setEnabled(false);
 }
 
+// buttons to set color
 void MainWindow::red()
 {
     this->cam->setColor(RED);
@@ -158,6 +178,7 @@ void MainWindow::eraser()
     this->cam->setColor(ERASER);
 }
 
+// size slider
 void MainWindow::on_size_slider_valueChanged(int value)
 {
     this->cam->setSize(value);

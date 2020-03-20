@@ -13,10 +13,12 @@ using namespace cv;
 
 namespace Helpers
 {
+    // Checks if a point is within THRESH distance to a point in a given vector
     bool closePointExists(const vector<Point> &points, const Point &point, int thresh);
+    // returns distance between two points
     double pointsDistance(const Point& a, const Point& b);
+    // Checks if a point is within THRESH distance to a point in a given matrix
     bool closePointExists(const Mat& frame, const Point& point, int thresh);
-    bool pointTooFarFromOthers(const vector<Point>& points, const Point& point, int thresh);
 };
 
 

@@ -21,6 +21,8 @@
 
 // Constant for waiting for partner message
 #define WAITING_MSG "Connected! Waiting for Partner..."
+#define DEFAULT_PORT 1234 // default port
+#define DEFAULT_BRUSH_SIZE 5 // default brush size
 
 // using command...
 using std::vector;
@@ -63,7 +65,7 @@ private:
 
 public:
     // constructor
-    DrawingCam(int id = 0, string ip = "127.0.0.1", int port = 1234);
+    DrawingCam(int id = 0, string ip = "127.0.0.1", int port = DEFAULT_PORT);
 
     // destructor
     ~DrawingCam();

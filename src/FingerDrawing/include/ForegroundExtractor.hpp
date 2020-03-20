@@ -9,21 +9,25 @@
 
 using namespace cv;
 
-// Threshold for
+// Threshold for background vs foreground
 #define THRESHHOLD 50
 
 class ForegroundExtractor
 {
 public:
+    // default constructor
     ForegroundExtractor();
 
+    // calibrates background
     void calibrate(Mat frame);
 
+    // extracts the foreground
     Mat extractForeground(Mat frame);
 
 private:
+    // variable for the background
     Ptr<BackgroundSubtractorMOG2> background;
-    bool calibrated = false;
+    bool calibrated = false; // if calibrated already
 };
 
 

@@ -3,11 +3,12 @@
 //
 
 #include "../include/SkinDetector.hpp"
-
+// empty constructor
 SkinDetector::SkinDetector()
 {
 }
 
+// draws the sampelrs on screen (pink rectangles)
 void SkinDetector::drawSampler(Mat frame)
 {
     int frameWidth = frame.size().width;
@@ -23,6 +24,7 @@ void SkinDetector::drawSampler(Mat frame)
     rectangle(frame, sampler2, rectColor);
 }
 
+// samples skin color from samplers
 void SkinDetector::sample(Mat frame)
 {
     Mat hsv;
@@ -36,6 +38,7 @@ void SkinDetector::sample(Mat frame)
     sampled = true;
 }
 
+// generates mask from sampled skin color
 Mat SkinDetector::genMask(Mat frame)
 {
     Mat hsv, blur, thresh;
@@ -48,10 +51,12 @@ Mat SkinDetector::genMask(Mat frame)
 
 
 
+    // blurs for better results
     cvtColor(frame, hsv, COLOR_BGR2HSV);
     GaussianBlur(hsv, blur, Size(41, 41), 0);
     inRange(blur, Scalar(hLow, sLow, vLow), Scalar(hHigh, sHigh, vHigh), thresh);
 
+    // "opens" up some rough parts of image for better results
     Mat element = getStructuringElement(MARKER_CROSS, Size(15, 15));
     morphologyEx(thresh, thresh, MORPH_CLOSE, element);
 
@@ -66,6 +71,7 @@ Mat SkinDetector::genMask(Mat frame)
     return thresh;
 }
 
+// calculates thresholds from samplers with the low and high offsets
 void SkinDetector::calcThresholds(Mat sample1, Mat sample2)
 {
     Scalar hsvMeansSample1 = mean(sample1);
@@ -85,6 +91,7 @@ void SkinDetector::calcThresholds(Mat sample1, Mat sample2)
 //    vHigh = 255;
 }
 
+// resets thresholds
 void SkinDetector::resetThresholds()
 {
     sampled = false;

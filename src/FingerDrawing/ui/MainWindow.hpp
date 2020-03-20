@@ -15,9 +15,10 @@
 
 using std::string;
 
-#define DEF_IP "172.16.1.127"
+#define DEF_IP "172.16.1.127" // default values
 #define DEFAULT_PORT 1234
 
+// set namespace to Ui
 namespace Ui
 {
     class MainWindow;
@@ -28,12 +29,14 @@ class MainWindow : public QMainWindow
 Q_OBJECT
 
 public:
+    // constructor for ui window
     explicit MainWindow(QWidget *parent = 0);
 
     ~MainWindow() override;
 
 private slots:
 
+    // slots for all buttons
     void on_sample_btn_clicked();
 
     void on_reset_sample_btn_clicked();
@@ -63,14 +66,14 @@ private slots:
     void on_size_slider_valueChanged(int value);
 
 private:
-    Ui::MainWindow *ui;
-    DrawingCam *cam;
-    QTimer *updateTimer;
-    Mat frame;
-    QImage qt_image;
-    bool shouldFlip = true;
-    bool showDebug = false;
-    bool done = false;
+    Ui::MainWindow *ui; // ui object pointer
+    DrawingCam *cam; // camera object pointer
+    QTimer *updateTimer; // timer for invoking methods pointer
+    Mat frame; // current frame
+    QImage qt_image; // current qImage
+    bool shouldFlip = true; // shouldflip boolean
+    bool showDebug = false; // showdebug boolean
+    bool done = false; // done
 
     void keyPressEvent(QKeyEvent *event) override;
 };
