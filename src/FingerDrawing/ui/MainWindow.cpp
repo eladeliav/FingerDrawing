@@ -18,6 +18,7 @@ MainWindow::MainWindow(QWidget *parent) :
     updateTimer->start(20);
 //    std::thread mainLoopThread(&MainWindow::mainLoop, this);
 //    mainLoopThread.detach();
+    updateConfigFile();
 }
 
 // frees memory and disconnects winsock library (if on windows)
@@ -32,7 +33,7 @@ MainWindow::~MainWindow()
 void MainWindow::mainLoop()
 {
     // if done stop
-    if(done)
+    if (done)
         return;
 
     // if not connected simulate disconnect click so that the ui button updates
@@ -53,7 +54,7 @@ void MainWindow::mainLoop()
         return;
 
     // conver to QImage format
-    qt_image = QImage((const unsigned char*)frame.data, frame.cols, frame.rows, frame.step, QImage::Format_RGB888);
+    qt_image = QImage((const unsigned char *) frame.data, frame.cols, frame.rows, frame.step, QImage::Format_RGB888);
 
     // display frame
     this->ui->img_label->setPixmap(QPixmap::fromImage(qt_image));
@@ -118,9 +119,9 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
         QCoreApplication::exit(0);
     } else if (event->key() == Qt::Key_T)
         this->cam->toggleMode();
-    else if(event->key() == Qt::Key_Equal)
+    else if (event->key() == Qt::Key_Equal)
         this->cam->incSize();
-    else if(event->key() == Qt::Key_Minus)
+    else if (event->key() == Qt::Key_Minus)
         this->cam->decSize();
 
 }
@@ -135,8 +136,6 @@ void MainWindow::on_show_debug_btn_clicked()
 // attempt to connect button
 void MainWindow::on_connect_btn_clicked()
 {
-    string ip = this->ui->ip_input->text().toStdString();
-    int port = this->ui->port_input->text().toInt();
     if (port == 0)
     {
         std::cout << "Invalid Port" << std::endl;
@@ -182,4 +181,34 @@ void MainWindow::eraser()
 void MainWindow::on_size_slider_valueChanged(int value)
 {
     this->cam->setSize(value);
+}
+
+void MainWindow::updateConfigFile()
+{
+    std::ifstream config_file(CONFIG_FILE_PATH);
+    std::string line;
+    while(std::getline(config_file, line))
+    {
+        std::istringstream is_line(line);
+        std::string key;
+        if(std::getline(is_line, key, '='))
+        {
+            std::string value;
+            if(std::getline(is_line, value))
+            {
+                try
+                {
+                    if(key == "ip")
+                        this->ip = value;
+                    else if(key == "port")
+                        this->port = std::stoi(value);
+                }catch(std::invalid_argument& e)
+                {
+                    std::cout << "Invalid Port or IP" << std::endl;
+                    exit(1);
+                }
+            }
+        }
+    }
+    std::cout << "IP: " << this->ip << ", Port: " << this->port << std::endl;
 }

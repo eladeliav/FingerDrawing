@@ -11,12 +11,14 @@
 #include <QButtonGroup>
 #include <QTimer>
 #include <QThread>
+#include <fstream>
 #include "include/DrawingCam.hpp"
 
 using std::string;
 
 #define DEF_IP "172.16.1.127" // default values
 #define DEFAULT_PORT 1234
+#define CONFIG_FILE_PATH "./config.cfg"
 
 // set namespace to Ui
 namespace Ui
@@ -65,6 +67,8 @@ private slots:
 
     void on_size_slider_valueChanged(int value);
 
+    void updateConfigFile();
+
 private:
     Ui::MainWindow *ui; // ui object pointer
     DrawingCam *cam; // camera object pointer
@@ -74,6 +78,8 @@ private:
     bool shouldFlip = true; // shouldflip boolean
     bool showDebug = false; // showdebug boolean
     bool done = false; // done
+    std::string ip = DEF_IP;
+    int port = DEFAULT_PORT;
 
     void keyPressEvent(QKeyEvent *event) override;
 };

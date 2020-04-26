@@ -13,6 +13,8 @@ list(APPEND CMAKE_PREFIX_PATH $ENV{QT_DIR})
 
 find_package(Qt5Core REQUIRED)
 find_package(Qt5Widgets REQUIRED)
+message("-- Found Qt5Core: ${Qt5Core_FOUND}")
+message("-- Found Qt5Widgets: ${Qt5Widgets_FOUND}")
 
 set(SOURCES
         src/main.cpp

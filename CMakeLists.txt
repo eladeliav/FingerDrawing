@@ -10,9 +10,10 @@ if(WIN32)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/bin)
 
 set(OpenCV_DIR $ENV{OPENCV_DIR})
+message(${OpenCV_DIR})
 set(OpenCV_STATIC ON)
 find_package(OpenCV REQUIRED)
-
+message("-- Found OpenCV: ${OpenCV_FOUND}")
 find_package(UniSockets REQUIRED)
 message("-- Found UniSockets: ${UniSockets_FOUND}")
 
