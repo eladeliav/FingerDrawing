@@ -186,6 +186,15 @@ void MainWindow::on_size_slider_valueChanged(int value)
 void MainWindow::updateConfigFile()
 {
     std::ifstream config_file(CONFIG_FILE_PATH);
+    if(!config_file.is_open())
+    {
+        std::stringstream s;
+        s << "ip=" << DEF_IP << std::endl << "port=" << DEFAULT_PORT;
+        std::ofstream new_config_file(CONFIG_FILE_PATH);
+        new_config_file << s.str();
+        new_config_file.close();
+        config_file = std::ifstream(CONFIG_FILE_PATH);
+    }
     std::string line;
     while(std::getline(config_file, line))
     {
@@ -210,5 +219,6 @@ void MainWindow::updateConfigFile()
             }
         }
     }
+    config_file.close();
     std::cout << "IP: " << this->ip << ", Port: " << this->port << std::endl;
 }

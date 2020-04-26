@@ -16,7 +16,7 @@
 
 using std::string;
 
-#define DEF_IP "172.16.1.127" // default values
+#define DEF_IP "127.0.0.1" // default values
 #define DEFAULT_PORT 1234
 #define CONFIG_FILE_PATH "./config.cfg"
 
