@@ -59,6 +59,8 @@ private:
 
     void draw(); // draws at current color, size and mouse pointer
 
+    void handle_game_logic();
+
     void sendPoint(const DrawPoint &p); // sends point to server
 
     void getPoints(); // gets point loop

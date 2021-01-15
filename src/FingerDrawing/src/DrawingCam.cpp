@@ -170,49 +170,7 @@ Mat DrawingCam::getNextFrame(bool shouldFlip)
         canvas.copyTo(roi, 255 - transparent);
     } else if (finishedCountdown) // finishedcountdown (rock paper scissors mode)
     {
-        // check results
-        int fingerNum = fingerPoints.size();
-        std::cout << "FingerNum: " << fingerNum << std::endl;
-        HandShape shape = INVALID;
-        if (fingerNum == 0) // 0 fingers up is rock
-        {
-            shape = ROCK;
-        }else if(fingerNum == 1 || fingerNum > 2) // 1 or more than 2 fingers up is paper
-        {
-            shape = PAPER;
-        } else if (fingerNum == 2) // 2 fingers  is scissors
-        {
-            shape = SCISSORS;
-        }
-        // display text
-        textToShow.push_back("The Shape you made is: " + SHAPE_TO_STRING.at(shape));
-        connectionManager.sendHandShape(shape); // send shape to server
-        HandShape otherShape = connectionManager.getHandShape(); // receive partners shape
-        std::string otherShapeStr = SHAPE_TO_STRING.at(otherShape); // converst to string to display
-        textToShow.push_back("Opponent played: " + otherShapeStr);
-        for (const auto &p : SHAPE_TO_STRING)
-        {
-            if (p.second == otherShapeStr)
-                otherShape = p.first;
-        }
-        // check winner
-        if (otherShape == ROCK && shape == PAPER)
-            textToShow.push_back("You Win!");
-        else if (otherShape == ROCK && shape == SCISSORS)
-            textToShow.push_back("You Lose!");
-        else if (otherShape == PAPER && shape == ROCK)
-            textToShow.push_back("You Lose!");
-        else if (otherShape == PAPER && shape == SCISSORS)
-            textToShow.push_back("You Win!");
-        else if (otherShape == SCISSORS && shape == ROCK)
-            textToShow.push_back("You Win!");
-        else if (otherShape == SCISSORS && shape == PAPER)
-            textToShow.push_back("You Lose!");
-        else
-            textToShow.push_back("Draw!");
-        // reset variables to drawing mode
-        finishedCountdown = false;
-        drawingMode = true;
+        handle_game_logic();
     }
     return frame;
 }
@@ -350,4 +308,51 @@ void DrawingCam::decSize()
 {
     if(brushSize -1 >= 5)
         brushSize--;
+}
+
+void DrawingCam::handle_game_logic()
+{
+    // check results
+    int fingerNum = fingerPoints.size();
+    std::cout << "FingerNum: " << fingerNum << std::endl;
+    HandShape shape = INVALID;
+    if (fingerNum == 0) // 0 fingers up is rock
+    {
+        shape = ROCK;
+    }else if(fingerNum == 1 || fingerNum > 2) // 1 or more than 2 fingers up is paper
+    {
+        shape = PAPER;
+    } else if (fingerNum == 2) // 2 fingers  is scissors
+    {
+        shape = SCISSORS;
+    }
+    // display text
+    textToShow.push_back("The Shape you made is: " + SHAPE_TO_STRING.at(shape));
+    connectionManager.sendHandShape(shape); // send shape to server
+    HandShape otherShape = connectionManager.getHandShape(); // receive partners shape
+    std::string otherShapeStr = SHAPE_TO_STRING.at(otherShape); // converst to string to display
+    textToShow.push_back("Opponent played: " + otherShapeStr);
+    for (const auto &p : SHAPE_TO_STRING)
+    {
+        if (p.second == otherShapeStr)
+            otherShape = p.first;
+    }
+    // check winner
+    if (otherShape == ROCK && shape == PAPER)
+        textToShow.push_back("You Win!");
+    else if (otherShape == ROCK && shape == SCISSORS)
+        textToShow.push_back("You Lose!");
+    else if (otherShape == PAPER && shape == ROCK)
+        textToShow.push_back("You Lose!");
+    else if (otherShape == PAPER && shape == SCISSORS)
+        textToShow.push_back("You Win!");
+    else if (otherShape == SCISSORS && shape == ROCK)
+        textToShow.push_back("You Win!");
+    else if (otherShape == SCISSORS && shape == PAPER)
+        textToShow.push_back("You Lose!");
+    else
+        textToShow.push_back("Draw!");
+    // reset variables to drawing mode
+    finishedCountdown = false;
+    drawingMode = true;
 }
